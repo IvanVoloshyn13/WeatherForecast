@@ -13,4 +13,6 @@
     <color name="light_gray">#C0BEBEBE</color>
     <color name="darker_gray">#646464</color>
     <color name="light_blue">#30A1FB</color>
+    <color name="transparent">#00FFFFFF</color>
+
 </resources>
