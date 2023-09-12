@@ -1,5 +1,6 @@
 package com.example.network
 
+import com.slack.eithernet.ApiResultCallAdapterFactory
 import com.squareup.moshi.Moshi
 import dagger.Module
 import dagger.Provides
@@ -29,6 +30,7 @@ internal object NetworkModule {
         return Retrofit.Builder()
             .baseUrl("")
             .addConverterFactory(moshiConverterFactory)
+            .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
             .build()
     }

@@ -24,6 +24,7 @@ class MainActivity : AppCompatActivity() {
         initNavigation()
 
 
+
     }
 
     private fun initNavigation() {
@@ -35,23 +36,3 @@ class MainActivity : AppCompatActivity() {
 }
 
 
-//addMenuProvider(object : MenuProvider {
-//    override fun onCreateMenu(menu: Menu, menuInflater: MenuInflater) {
-//        Log.d("TAG", "On create menu")
-//        menuInflater.inflate(R.menu.main_drawer_menu, menu)
-//    }
-//
-//    override fun onMenuItemSelected(menuItem: MenuItem): Boolean {
-//        when (menuItem.itemId) {
-//            R.id.current_location1 -> {
-//                Log.d("TAG", menuItem.itemId.toString())
-//            }
-//
-//            R.id.current_location -> {
-//                Log.d("TAG", menuItem.itemId.toString())
-//
-//            }
-//        }
-//        return true
-//    }
-//}, this, Lifecycle.State.RESUMED)

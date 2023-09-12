@@ -19,20 +19,25 @@
             layout="@layout/custom_toolbar"/>
     </LinearLayout>
 
-    <com.google.android.material.navigation.NavigationView
-        android:id="@+id/main_nav_view"
-        android:layout_width="wrap_content"
-        android:layout_height="match_parent"
-        android:layout_gravity="start"
-        android:background="?attr/colorSurface"
-        app:headerLayout="@layout/header_layout"
-        app:itemIconTint="?attr/colorPrimary"
-        app:itemTextColor="@color/white"
-        app:menu="@menu/main_drawer_menu"
-        app:subheaderTextAppearance="@style/TextAppearance.WeatherForecast.MenuItem" >
+
+        <com.google.android.material.navigation.NavigationView
+            android:id="@+id/main_nav_view"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:layout_gravity="start"
+            android:background="?attr/colorSurface"
+            app:headerLayout="@layout/header_layout"
+            app:itemIconTint="?attr/colorPrimary"
+            app:itemTextColor="@color/white"
+            app:menu="@menu/main_drawer_menu"
+            app:subheaderTextAppearance="@style/TextAppearance.WeatherForecast.MenuItem" >
 
 
-    </com.google.android.material.navigation.NavigationView>
+        </com.google.android.material.navigation.NavigationView>
+
+
+
+
 
 
 

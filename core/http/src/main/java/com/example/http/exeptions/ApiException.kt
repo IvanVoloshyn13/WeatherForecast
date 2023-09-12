@@ -8,3 +8,4 @@ class ApiException(val code: Int, message: String?) : Exception(message) {
 
     public fun isServerError(): Boolean = code >= 500
 }
+
