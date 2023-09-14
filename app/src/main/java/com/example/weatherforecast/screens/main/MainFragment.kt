@@ -10,16 +10,20 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.google.android.material.navigation.NavigationView
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener {
 
     private val binding by lazy { FragmentMainBinding.inflate(layoutInflater) }
     private lateinit var menuHost: MenuHost
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menu: Menu
+    private val viewModel by viewModels<MainViewModel>()
 
 
     override fun onCreateView(
@@ -48,11 +52,12 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         val menu = navigationView.menu
 
 
-        val list = arrayOf("String", "Double","String", "Double","String", "Double","String", "Double")
+        val list =
+            arrayOf("String", "Double", "String", "Double", "String", "Double", "String", "Double")
         for (i in list.indices) {
-            menu.add(Menu.FLAG_APPEND_TO_GROUP, i, Menu.CATEGORY_ALTERNATIVE, list[i]).setIcon(R.drawable.ic_current_location)
+            menu.add(Menu.FLAG_APPEND_TO_GROUP, i, Menu.CATEGORY_ALTERNATIVE, list[i])
+                .setIcon(R.drawable.ic_current_location)
         }
-
 
 
     }
@@ -64,7 +69,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             }
 
             R.id.current_location -> {
-                TODO("Not implemented method for current location")
+                viewModel.getLocation()
             }
         }
         return true
