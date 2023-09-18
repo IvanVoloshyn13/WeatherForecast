@@ -6,8 +6,10 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
+import androidx.core.view.size
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
@@ -38,6 +40,15 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        val navigationView = binding.mainNavView
+        navigationView.setNavigationItemSelectedListener(this)
+
+        val list = arrayOf("Lviv", "Warsaw","Krakow")
+        val menu = navigationView.menu
+
+        for (index in list.indices) {
+            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
+        }
 
 
     }
@@ -46,17 +57,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         super.onResume()
         binding.toolbar.mainToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
-        }
-        val navigationView = binding.mainNavView
-        navigationView.setNavigationItemSelectedListener(this)
-        val menu = navigationView.menu
-
-
-        val list =
-            arrayOf("String", "Double", "String", "Double", "String", "Double", "String", "Double")
-        for (i in list.indices) {
-            menu.add(Menu.FLAG_APPEND_TO_GROUP, i, Menu.CATEGORY_ALTERNATIVE, list[i])
-                .setIcon(R.drawable.ic_current_location)
         }
 
 
@@ -70,8 +70,20 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
             R.id.current_location -> {
                 viewModel.getLocation()
+                drawerLayout.close()
+            }
+
+            else -> {
+                drawerLayout.close()
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    "${item}",
+                    Toast.LENGTH_SHORT
+                ).show()
+
             }
         }
+
         return true
     }
 

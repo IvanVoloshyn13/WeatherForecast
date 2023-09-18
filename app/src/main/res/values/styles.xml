@@ -11,4 +11,11 @@
         <item name="android:textSize">16sp</item>
     </style>
 
+    <style name="Widget.WeatherForecast.Button" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="cornerRadius">12dp</item>
+        <item name="android:backgroundTint">?attr/colorSecondary</item>
+        <item name="android:textColor">?attr/colorOnPrimary</item>
+        <item name="android:textAllCaps">false</item>
+    </style>
+
 </resources>

@@ -8,6 +8,7 @@ import android.location.Address
 import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.example.domain.location.FusedLocationProvider
@@ -22,6 +23,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.coroutines.resumeWithException
 
 class FusedLocationProviderImpl @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
@@ -85,15 +87,17 @@ class FusedLocationProviderImpl @Inject constructor(
 
                     }
                     continuation.resume(Resource.Success(data = currentUserLocation)) {
+                        continuation.resumeWithException(it)
                     }
                 }
                     .addOnCanceledListener {
-                        TODO()
+
                     }
                     .addOnFailureListener {
-                        TODO()
-                    }
+                        Log.d("GPS","On Failure")
 
+                    }
+            
 
             }
 
