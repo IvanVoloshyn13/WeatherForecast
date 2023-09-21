@@ -1,7 +1,9 @@
 package com.example.domain.models
 
+import java.time.LocalDateTime
+
 data class HourlyWeatherData(
-    val currentHour: String,
+    val currentHour: LocalDateTime,
     val currentTemp: Int,
-    val weatherCode: WeatherType
+    val weatherType: WeatherType
 )
