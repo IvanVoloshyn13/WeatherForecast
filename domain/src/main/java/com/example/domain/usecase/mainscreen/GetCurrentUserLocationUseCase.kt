@@ -1,4 +1,4 @@
-package com.example.domain.usecase
+package com.example.domain.usecase.mainscreen
 
 import com.example.domain.location.FusedLocationProvider
 import com.example.domain.models.CurrentUserLocation

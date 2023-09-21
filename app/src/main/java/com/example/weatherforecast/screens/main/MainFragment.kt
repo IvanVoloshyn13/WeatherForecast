@@ -34,7 +34,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         savedInstanceState: Bundle?
     ): View? {
         drawerLayout = binding.mainDrawer
-
         return binding.root
     }
 
@@ -43,12 +42,12 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         val navigationView = binding.mainNavView
         navigationView.setNavigationItemSelectedListener(this)
 
-        val list = arrayOf("Lviv", "Warsaw","Krakow")
-        val menu = navigationView.menu
-
-        for (index in list.indices) {
-            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
-        }
+//        val list = arrayOf("Lviv", "Warsaw","Krakow")
+//        val menu = navigationView.menu
+//
+//        for (index in list.indices) {
+//            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
+//        }
 
 
     }

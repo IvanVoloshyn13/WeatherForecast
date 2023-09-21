@@ -45,9 +45,9 @@ dependencies {
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
 
     implementation 'com.squareup.moshi:moshi:1.8.0'
-    implementation "com.squareup.retrofit2:converter-moshi:2.4.0"
+    api "com.squareup.retrofit2:converter-moshi:2.4.0"
 
-    implementation("com.slack.eithernet:eithernet:1.5.0")
+    api("com.slack.eithernet:eithernet:1.5.0")
 }
 kapt {
     correctErrorTypes true
