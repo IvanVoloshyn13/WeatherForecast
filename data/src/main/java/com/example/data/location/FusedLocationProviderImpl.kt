@@ -91,7 +91,7 @@ class FusedLocationProviderImpl @Inject constructor(
                     }
                 }
                     .addOnCanceledListener {
-
+                        Log.d("GPS","On Cancel")
                     }
                     .addOnFailureListener {
                         Log.d("GPS","On Failure")

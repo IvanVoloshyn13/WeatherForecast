@@ -1,5 +1,6 @@
 package com.example.network
 
+import com.example.network.utils.OpenMeteoBaseUrl
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import com.squareup.moshi.Moshi
 import dagger.Module
@@ -18,20 +19,33 @@ import javax.inject.Singleton
 internal object NetworkModule {
     @Provides
     @Singleton
-    fun provideMoshi(moshi: Moshi) = MoshiConverterFactory.create(moshi)
+    fun provideMoshi(): Moshi {
+        return Moshi.Builder().build()
+    }
+
+    @Provides
+    @Singleton
+    fun provideMoshiConverterFactory(moshi: Moshi): MoshiConverterFactory {
+        return MoshiConverterFactory.create(moshi)
+    }
 
     @Provides
     @Singleton
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
-        okHttpClient: Lazy<OkHttpClient>
+        okHttpClient: OkHttpClient
     ): Retrofit {
-        val callFactory = Call.Factory { request -> okHttpClient.value.newCall(request) }
+        val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
         return Retrofit.Builder()
-            .baseUrl("")
+            .baseUrl(OpenMeteoBaseUrl.OPEN_METEO_BASE_URL)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
             .build()
     }
+
+    @Provides
+    fun provideWeatherService(retrofit: Retrofit) = retrofit.create(APIWeatherService::class.java)
+
+
 }
