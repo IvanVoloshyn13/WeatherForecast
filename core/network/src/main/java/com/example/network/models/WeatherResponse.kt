@@ -1,10 +1,9 @@
 package com.example.network.models
 
-import com.squareup.moshi.Json
+import com.squareup.moshi.JsonClass
 
+@JsonClass(generateAdapter = true)
 data class WeatherResponse(
-    @Json(name = "daily")
-    val dailyWeatherData: Daily,
-    @Json(name = "hourly")
-    val hourlyWeatherData: Hourly,
+    val daily: Daily,
+    val hourly: Hourly,
 )
