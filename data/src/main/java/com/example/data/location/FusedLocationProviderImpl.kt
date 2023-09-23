@@ -61,20 +61,26 @@ class FusedLocationProviderImpl @Inject constructor(
                 var latitude: Double
                 var longitude: Double
                 fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
-                    latitude = location.latitude
-                    longitude = location.longitude
-                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                        geocoder.getFromLocation(latitude, longitude, 1, Geocoder.GeocodeListener {
-                            if (it.size > 0) {
-                                currentUserLocation = CurrentUserLocation(
-                                    latitude = latitude,
-                                    longitude = longitude,
-                                    city = it[0].featureName
-                                )
-                            }
+                        latitude = location.latitude
+                        longitude = location.longitude
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            geocoder.getFromLocation(
+                                latitude,
+                                longitude,
+                                1,
+                                Geocoder.GeocodeListener {
+                                    if (it.size > 0) {
+                                        currentUserLocation = CurrentUserLocation(
+                                            latitude = latitude,
+                                            longitude = longitude,
+                                            city = it[0].featureName
+                                        )
+                                    }
 
-                        })
-                    } else {
+                                })
+
+                        }
+                    else {
                         @Suppress("DEPRECATION")
                         val address = geocoder.getFromLocation(latitude, longitude, 1)
                         if (address?.size!! > 0) {

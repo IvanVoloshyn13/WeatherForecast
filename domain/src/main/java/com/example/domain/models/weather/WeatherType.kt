@@ -1,4 +1,4 @@
-package com.example.domain.models
+package com.example.domain.models.weather
 
 sealed class WeatherType(
     val weatherType: String

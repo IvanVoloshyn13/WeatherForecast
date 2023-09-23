@@ -1,8 +1,8 @@
-package com.example.domain.models
+package com.example.domain.models.weather
 
 import java.time.LocalDateTime
 
-data class HourlyWeatherData(
+data class HourlyForecast(
     val currentHour: LocalDateTime,
     val currentTemp: Int,
     val weatherType: WeatherType

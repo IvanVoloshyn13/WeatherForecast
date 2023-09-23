@@ -3,6 +3,7 @@ package com.example.network
 import com.example.network.utils.OpenMeteoBaseUrl
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import com.squareup.moshi.Moshi
+import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -20,7 +21,7 @@ internal object NetworkModule {
     @Provides
     @Singleton
     fun provideMoshi(): Moshi {
-        return Moshi.Builder().build()
+        return Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
     }
 
     @Provides

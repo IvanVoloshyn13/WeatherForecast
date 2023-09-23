@@ -3,7 +3,7 @@ package com.example.weatherforecast.screens.main
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.models.WeatherData
+import com.example.domain.models.weather.HourlyForecast
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
@@ -24,7 +24,7 @@ class MainViewModel @Inject constructor(
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
 
-    private val _currentWeather = MutableStateFlow<Resource<WeatherData>>(Resource.Loading())
+    private val _currentWeather = MutableStateFlow<Resource<HourlyForecast>>(Resource.Loading())
 
     fun getLocation() {
         viewModelScope.launch(exceptionHandler) {
