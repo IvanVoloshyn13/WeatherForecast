@@ -60,7 +60,8 @@ class FusedLocationProviderImpl @Inject constructor(
                 val geocoder = Geocoder(context, Locale.getDefault())
                 var latitude: Double
                 var longitude: Double
-                fusedLocationProviderClient.lastLocation.addOnSuccessListener { location ->
+                fusedLocationProviderClient.lastLocation.addOnSuccessListener { locationNullable ->
+                    locationNullable?.let { location->
                         latitude = location.latitude
                         longitude = location.longitude
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -80,21 +81,23 @@ class FusedLocationProviderImpl @Inject constructor(
                                 })
 
                         }
-                    else {
-                        @Suppress("DEPRECATION")
-                        val address = geocoder.getFromLocation(latitude, longitude, 1)
-                        if (address?.size!! > 0) {
-                            currentUserLocation = CurrentUserLocation(
-                                latitude = latitude,
-                                longitude = longitude,
-                                city = address[0].locality
-                            )
-                        }
+                        else {
+                            @Suppress("DEPRECATION")
+                            val address = geocoder.getFromLocation(latitude, longitude, 1)
+                            if (address?.size!! > 0) {
+                                currentUserLocation = CurrentUserLocation(
+                                    latitude = latitude,
+                                    longitude = longitude,
+                                    city = address[0].locality
+                                )
+                            }
 
+                        }
+                        continuation.resume(Resource.Success(data = currentUserLocation)) {
+                            continuation.resumeWithException(it)
+                        }
                     }
-                    continuation.resume(Resource.Success(data = currentUserLocation)) {
-                        continuation.resumeWithException(it)
-                    }
+
                 }
                     .addOnCanceledListener {
                         Log.d("GPS","On Cancel")
