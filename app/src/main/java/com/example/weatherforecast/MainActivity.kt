@@ -31,7 +31,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        initNavigation()
         setContentView(binding.root)
         ActivityCompat.requestPermissions(
             this,
@@ -68,11 +67,11 @@ class MainActivity : AppCompatActivity() {
 
     }
 
-    private fun initNavigation() {
-        val navHostFragment = supportFragmentManager.findFragmentById(R.id.main_nav_host)
-        val navController = navHostFragment?.findNavController()
-        navController?.navigate(R.id.mainFragment)
-    }
+//    private fun initNavigation() {
+//        val navHostFragment = supportFragmentManager.findFragmentById(R.id.main_nav_host)
+//        val navController = navHostFragment?.findNavController()
+//        navController?.navigate(R.id.mainFragment)
+//    }
 
     companion object {
         const val request_code = 201

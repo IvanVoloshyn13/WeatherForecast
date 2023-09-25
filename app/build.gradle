@@ -1,8 +1,6 @@
 plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
-
-
     id 'dagger.hilt.android.plugin'
     id 'kotlin-kapt'
 }
@@ -69,6 +67,14 @@ dependencies {
     kapt "com.google.dagger:hilt-android-compiler:$hilt_version"
 
     implementation("androidx.fragment:fragment-ktx:1.6.1")
+    def lifecycle_version = "2.6.2"
+
+    implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycle_version")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-savedstate:$lifecycle_version")
+    //noinspection LifecycleAnnotationProcessorWithJava8
+    kapt("androidx.lifecycle:lifecycle-compiler:$lifecycle_version")
+
+    implementation("androidx.hilt:hilt-navigation-fragment:1.0.0")
 }
 kapt {
     correctErrorTypes true

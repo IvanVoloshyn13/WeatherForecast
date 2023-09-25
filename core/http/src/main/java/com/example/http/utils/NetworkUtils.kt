@@ -12,7 +12,7 @@ import java.lang.Exception
 
 
 public suspend fun <T> executeApiCall(
-    call: suspend ( ) -> Response<T>,
+    call: suspend () -> Response<T>,
     defaultDelay: Long = 100,
     maxAttempts: Int = 3,
     shouldRetry: (Exception) -> Boolean = ::defaultShouldRetry,
@@ -25,6 +25,7 @@ public suspend fun <T> executeApiCall(
             if (attempt == (maxAttempts - 1) || !shouldRetry(e)) {
                 if (e is JsonDataException) {
                     Log.e("APICall", e.toString())
+
                 }
                 throw e
             }
