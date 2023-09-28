@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.main
+package com.example.weatherforecast.screens.main.models
 
 import com.example.domain.models.weather.DailyForecast
 import com.example.domain.models.weather.HourlyForecast

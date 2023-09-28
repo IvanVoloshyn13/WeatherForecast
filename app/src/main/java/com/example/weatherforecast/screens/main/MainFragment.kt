@@ -1,5 +1,6 @@
 package com.example.weatherforecast.screens.main
 
+import android.annotation.SuppressLint
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
@@ -43,6 +44,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         return binding.root
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         val navigationView = binding.mainNavView
@@ -55,10 +57,19 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
         lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.STARTED) {
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
                 viewModel.mainScreenState.collectLatest { state ->
                     state?.let {
                         binding.toolbar.tvToolbarTitle.text = it.city
+                        binding.mainWeatherWidget.tvMaxTemp.text =
+                            "${it.mainWeatherInfo.maxTemperature}\u00B0C"
+                        binding.mainWeatherWidget.tvMinTemp.text =
+                            "${it.mainWeatherInfo.minTemperature}\u00B0C"
+                        binding.mainWeatherWidget.tvCurrentTemp.text =
+                            "${it.mainWeatherInfo.currentTemperature}\u00B0C"
+                        binding.mainWeatherWidget.tvWeatherTypeDesc.text =
+                            it.mainWeatherInfo.weatherType.weatherType
+                        binding.mainWeatherWidget.ivWeatherTypeIcon.setImageResource(it.mainWeatherInfo.weatherType.weatherIcon)
                     }
 
                 }

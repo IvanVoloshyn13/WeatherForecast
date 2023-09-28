@@ -25,7 +25,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:gravity="bottom">
-        <include layout="@layout/current_weather_info_widget"
+        <include
+            android:id="@+id/main_weather_widget"
+            layout="@layout/current_weather_info_widget"
             android:layout_gravity="bottom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
