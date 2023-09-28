@@ -1,5 +1,7 @@
 package com.example.domain.models
 
+import com.example.domain.R
+
 data class CurrentUserLocation(
     val latitude: Double,
     val longitude: Double,

@@ -2,9 +2,8 @@ package com.example.data.repository
 
 import android.os.Build
 import androidx.annotation.RequiresApi
-import com.example.data.mappers.toDailyForecast
-import com.example.data.mappers.toHourlyForecast
-import com.example.domain.models.weather.WeatherData
+import com.example.data.mappers.toWeatherComponents
+import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.repository.WeatherDataRepository
 import com.example.domain.utils.Resource
 import com.example.http.utils.executeApiCall
@@ -18,7 +17,7 @@ class WeatherDataRepositoryImpl @Inject constructor(
     override suspend fun getWeatherData(
         latitude: Double,
         longitude: Double
-    ): Resource<WeatherData> {
+    ): Resource<WeatherComponents> {
 
         val networkResult = executeApiCall({
             apiWeatherService.getWeatherData(
@@ -28,15 +27,13 @@ class WeatherDataRepositoryImpl @Inject constructor(
 
         })
 
-        val hourlyForecast = networkResult.toHourlyForecast()
-        val dailyForecast = networkResult.toDailyForecast()
 
-        return if(networkResult!=null) Resource.Success(
-            WeatherData(
-                hourlyForecast = hourlyForecast,
-                dailyForecast = dailyForecast
+        return if (networkResult != null) {
+            val weatherComponents = networkResult.toWeatherComponents()
+            Resource.Success(
+                weatherComponents
             )
-        ) else {
+        } else {
             return Resource.Error(message = "")
         }
 
