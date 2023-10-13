@@ -3,17 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="?attr/actionBarSize"
     >
 
     <androidx.appcompat.widget.Toolbar
         android:id="@+id/main_toolbar"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="?attr/actionBarSize"
         app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:navigationIcon="@drawable/ic_menu"
         app:layout_constraintTop_toTopOf="parent"
+        app:navigationIcon="@drawable/ic_menu"
         tools:background="@color/black">
 
     </androidx.appcompat.widget.Toolbar>
@@ -32,13 +33,26 @@
 
     </TextView>
 
+    <TextView
+        android:id="@+id/tv_current_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="@id/tv_toolbar_title"
+        android:textSize="16sp"
+        app:layout_constraintStart_toStartOf="@id/tv_toolbar_title"
+        app:layout_constraintTop_toBottomOf="@id/tv_toolbar_title"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName">
+
+    </TextView>
+
     <ImageView
         android:id="@+id/btt_add_new_city"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent"
+     app:layout_constraintBottom_toBottomOf="parent"
         android:layout_marginEnd="16dp"
         android:src="@drawable/ic_add"
         app:tint="@color/white">

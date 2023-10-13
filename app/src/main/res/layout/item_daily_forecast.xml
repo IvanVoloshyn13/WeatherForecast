@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="5dp">
+
+    <TextView
+        android:id="@+id/tv_day_of_week"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        android:gravity="center"
+        android:paddingStart="4dp"
+        android:text="Day of week"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
+        android:textSize="22sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent">
+
+    </TextView>
+
+
+    <ImageView
+        android:id="@+id/iv_weather_type"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/tv_day_of_week"
+        tools:src="@drawable/ic_heavy_snow">
+
+    </ImageView>
+
+    <TextView
+        android:id="@+id/tv_min_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="@id/tv_day_of_week"
+        android:layout_marginEnd="8dp"
+        tools:text="18"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
+        android:textSize="22sp">
+
+    </TextView>
+
+    <TextView
+        android:id="@+id/tv_max_temp"
+        android:layout_width="wrap_content"
+        android:layout_height="32dp"
+        app:layout_constraintEnd_toStartOf="@id/tv_min_temp"
+        app:layout_constraintTop_toTopOf="@id/tv_day_of_week"
+        android:layout_marginEnd="18dp"
+        tools:text="25"
+        android:gravity="center"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
+        android:textSize="22sp">
+
+    </TextView>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
