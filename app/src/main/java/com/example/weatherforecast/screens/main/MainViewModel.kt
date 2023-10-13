@@ -42,7 +42,8 @@ class MainViewModel @Inject constructor(
             _mainScreenState.update { state ->
                 state?.copy(
                     city = location.city,
-                    mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default
+                    mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
+                    hourlyForecast = weather?.hourlyForecast?.get(0)
                 )
             }
         }.launchIn(viewModelScope)

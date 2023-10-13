@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:paddingStart="4dp"
+    android:paddingEnd="4dp">
+
+    <TextView
+        android:id="@+id/tv_hour"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
+       android:textSize="18sp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:paddingStart="8dp"
+        android:paddingEnd="8dp"
+        tools:text="7:00">
+
+    </TextView>
+
+    <ImageView
+        android:id="@+id/tv_weather_type_icon"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
+        app:layout_constraintEnd_toEndOf="@id/tv_hour"
+        app:layout_constraintStart_toStartOf="@id/tv_hour"
+        app:layout_constraintTop_toBottomOf="@id/tv_hour"
+        android:layout_marginTop="4dp"
+        tools:src="@drawable/ic_heavy_snow">
+
+    </ImageView>
+
+    <TextView
+        android:id="@+id/tv_temperature"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
+        app:layout_constraintEnd_toEndOf="@id/tv_weather_type_icon"
+        app:layout_constraintStart_toStartOf="@id/tv_weather_type_icon"
+        app:layout_constraintTop_toBottomOf="@id/tv_weather_type_icon"
+        android:textSize="18sp"
+        tools:text="13">
+
+    </TextView>
+
+</androidx.constraintlayout.widget.ConstraintLayout>
