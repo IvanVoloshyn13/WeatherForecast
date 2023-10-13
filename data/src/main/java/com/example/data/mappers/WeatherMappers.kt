@@ -13,6 +13,8 @@ import com.example.network.models.WeatherResponse
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
+import java.util.logging.SimpleFormatter
 
 private data class IndexedHourlyWeatherData(
     val index: Int,
@@ -33,7 +35,7 @@ fun WeatherResponse.toHourlyForecast(): Map<Int, List<HourlyForecast>> {
         IndexedHourlyWeatherData(
             index = index,
             data = HourlyForecast(
-                currentHour = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME),
+                currentDate = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 currentTemp = currentTemp.toInt(),
                 weatherType = weatherType
             )
@@ -79,22 +81,27 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
         todayMaxTemp = it[0].maxTemperature
         todayMinTemp = it[0].minTemperature
     }
+    val calendar = Calendar.getInstance()
+
     val localTime = LocalTime.now()
-    val time: Int = if (localTime.minute < 30) localTime.hour else localTime.hour + 1
+    val time: Int = if (calendar.get(Calendar.MINUTE) < 30) localTime.hour else localTime.hour + 1
     val currentHourWeather = hourlyForecast[0]!!.firstOrNull() { hourlyForecast ->
-        hourlyForecast.currentHour.hour == time
+        hourlyForecast.currentDate.hour == time
     }
     currentHourTemp = currentHourWeather!!.currentTemp
-    currentHourWeatherType=currentHourWeather.weatherType
-    Log.d("TEST", "${currentHourTemp},${time}")
-    Log.d("TEST", "${currentHourWeather.weatherType.weatherType}")
-    Log.d("MAIN_WEATHER", "${MainWeatherInfo(todayMaxTemp, todayMinTemp, currentHourWeatherType, currentHourTemp)}")
+    currentHourWeatherType = currentHourWeather.weatherType
 
 
 
     return WeatherComponents(
         dailyForecast = dailyForecast, hourlyForecast = hourlyForecast,
-        mainWeatherInfo = MainWeatherInfo(todayMaxTemp, todayMinTemp, currentHourWeatherType, currentHourTemp)
+        mainWeatherInfo = MainWeatherInfo(
+            todayMaxTemp,
+            todayMinTemp,
+            currentHourWeatherType,
+            currentHourTemp,
+            currentTime = localTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+        )
     )
 }
 

@@ -7,8 +7,8 @@ import com.example.domain.models.weather.MainWeatherInfo
 data class MainScreenState(
     val city: String,
     val mainWeatherInfo: MainWeatherInfo,
-    val hourlyForecast: HourlyForecast? = null,
-    val dailyForecast: DailyForecast? = null,
+    val hourlyForecast: List<HourlyForecast>? = null,
+    val dailyForecast: List<DailyForecast>? = null,
 
     ) {
     companion object {
