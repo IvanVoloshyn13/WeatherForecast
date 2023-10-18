@@ -1,7 +1,7 @@
 package com.example.data.mappers
 
+import android.annotation.SuppressLint
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import com.example.domain.models.weather.DailyForecast
 import com.example.domain.models.weather.HourlyForecast
@@ -10,11 +10,12 @@ import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.models.weather.WeatherType
 
 import com.example.network.models.WeatherResponse
+import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.logging.SimpleFormatter
+import java.util.Locale
 
 private data class IndexedHourlyWeatherData(
     val index: Int,
@@ -43,15 +44,15 @@ fun WeatherResponse.toHourlyForecast(): Map<Int, List<HourlyForecast>> {
     }.groupBy {
         it.index / 24
     }.mapValues {
-        it.value.map { it.data }
+        it.value.map { hourlyWeatherData -> hourlyWeatherData.data }
     }
 }
 
 fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
-    return daily.time.mapIndexed { index, time ->
+    return List(daily.time.size) { index ->
         val maxTemperature = daily.temperature_2m_max[index].toInt()
         val minTemperature = daily.temperature_2m_min[index].toInt()
-        val time = daily.time[index]
+        val dayTime = daily.time[index]
         val weatherType = WeatherType.fromWHO(daily.weathercode[index])
         IndexedDailyWeatherData(
             index = index,
@@ -59,16 +60,17 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
                 weatherType = weatherType,
                 maxTemperature = maxTemperature,
                 minTemperature = minTemperature,
-                time = time
+                time = dayTime
             )
         )
     }.groupBy {
         it.index
     }.mapValues {
-        it.value.map { it.data }
+        it.value.map { dailyWeatherData -> dailyWeatherData.data }
     }
 }
 
+@SuppressLint("SimpleDateFormat")
 @RequiresApi(Build.VERSION_CODES.O)
 fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val dailyForecast = toDailyForecast()
@@ -91,8 +93,6 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     currentHourTemp = currentHourWeather!!.currentTemp
     currentHourWeatherType = currentHourWeather.weatherType
 
-
-
     return WeatherComponents(
         dailyForecast = dailyForecast, hourlyForecast = hourlyForecast,
         mainWeatherInfo = MainWeatherInfo(
@@ -100,9 +100,18 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
             todayMinTemp,
             currentHourWeatherType,
             currentHourTemp,
-            currentTime = localTime.format(DateTimeFormatter.ISO_LOCAL_DATE_TIME)
+            currentTime = localTime.toHour()
         )
     )
+}
+
+fun LocalTime.toHour(): String {
+    val time = this.toString()
+    val inputFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+    val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+    val parsedDate = inputFormat.parse(time)!!
+    return outputFormat.format(parsedDate)
+
 }
 
 

@@ -62,7 +62,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         val density = displayMetrics.density
         val viewHeight =
             screenHeight - ANDROID_STATUS_BAR_SIZE * density.toInt() -
-                    ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
+                    ANDROID_ACTION_BAR * density.toInt()- SYSTEM_NAVIGATION_BAR_SIZE * density.toInt()  - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
 
         return binding.root

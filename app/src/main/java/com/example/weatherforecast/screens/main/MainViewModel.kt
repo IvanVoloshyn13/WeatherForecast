@@ -38,6 +38,7 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
+        getWeatherByCurrentUserLocation()
         combine(_weather, _location) { weather, location ->
             _mainScreenState.update { state ->
                 state?.copy(

@@ -72,8 +72,8 @@ class FusedLocationProviderImpl @Inject constructor(
                                 Geocoder.GeocodeListener {
                                     if (it.size > 0) {
                                         currentUserLocation = CurrentUserLocation(
-                                            latitude = latitude,
-                                            longitude = longitude,
+                                            latitude = it[0].latitude,
+                                            longitude = it[0].longitude,
                                             city = it[0].featureName
                                         )
                                     }
