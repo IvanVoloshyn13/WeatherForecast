@@ -71,6 +71,7 @@ class FusedLocationProviderImpl @Inject constructor(
                                 1,
                                 Geocoder.GeocodeListener {
                                     if (it.size > 0) {
+                                      val  locale= it[0].locale
                                         currentUserLocation = CurrentUserLocation(
                                             latitude = it[0].latitude,
                                             longitude = it[0].longitude,
