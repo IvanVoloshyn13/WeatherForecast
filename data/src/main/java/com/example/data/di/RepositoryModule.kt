@@ -1,6 +1,8 @@
 package com.example.data.di
 
+import com.example.data.repository.LocationTimeRepositoryImpl
 import com.example.data.repository.WeatherDataRepositoryImpl
+import com.example.domain.repository.LocationTimeRepository
 import com.example.domain.repository.WeatherDataRepository
 import dagger.Binds
 import dagger.Module
@@ -12,4 +14,7 @@ import dagger.hilt.components.SingletonComponent
 abstract class RepositoryModule {
     @Binds
     abstract fun bindWeatherRepository(weatherDataRepositoryImpl: WeatherDataRepositoryImpl): WeatherDataRepository
+
+    @Binds
+    abstract fun bindLocationTimeRepository(locationTimeRepositoryImpl: LocationTimeRepositoryImpl): LocationTimeRepository
 }

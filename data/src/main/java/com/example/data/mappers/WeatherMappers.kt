@@ -71,7 +71,6 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
 }
 
 @SuppressLint("SimpleDateFormat")
-@RequiresApi(Build.VERSION_CODES.O)
 fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val dailyForecast = toDailyForecast()
     val hourlyForecast = toHourlyForecast()
@@ -100,7 +99,7 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
             todayMinTemp,
             currentHourWeatherType,
             currentHourTemp,
-            currentTime = localTime.toHour()
+
         )
     )
 }

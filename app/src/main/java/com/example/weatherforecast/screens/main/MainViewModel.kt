@@ -7,24 +7,33 @@ import com.example.domain.models.CurrentUserLocation
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
+import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
 import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
-    private val getWeatherDataUseCase: GetWeatherDataUseCase
+    private val getWeatherDataUseCase: GetWeatherDataUseCase,
+    private val getLocationTimeUseCase: GetLocationTimeUseCase
 ) : ViewModel() {
+
+    private var timeJob: Job? = null
 
 
     private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -34,17 +43,22 @@ class MainViewModel @Inject constructor(
     private val _weather = MutableStateFlow<WeatherComponents?>(null)
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
 
+    private val _time = MutableStateFlow<String?>("0:00")
+    val time = _time.asStateFlow()
+
     private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
+
         getWeatherByCurrentUserLocation()
-        combine(_weather, _location) { weather, location ->
+        combine(_weather, _location, _time) { weather, location, time ->
             _mainScreenState.update { state ->
                 state?.copy(
                     city = location.city,
                     mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
-                    hourlyForecast = weather?.hourlyForecast?.get(0)
+                    hourlyForecast = weather?.hourlyForecast?.get(0),
+                    time = time ?: ""
                 )
             }
         }.launchIn(viewModelScope)
@@ -120,6 +134,21 @@ class MainViewModel @Inject constructor(
             is Resource.Error -> {}
             is Resource.Loading -> {}
         }
+    }
+
+    fun getTimeByLocation() {
+        timeJob = viewModelScope.launch {
+                getLocationTimeUseCase.invoke("CEST", true).collectLatest {
+                    _time.value = it
+                }
+
+        }
+
+
+    }
+
+    fun stopTimeObserve(){
+        timeJob?.cancel()
     }
 
 

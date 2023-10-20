@@ -5,13 +5,13 @@ import kotlinx.coroutines.flow.Flow
 import java.util.Locale
 import javax.inject.Inject
 
-class GetLocationTimeUseCase @Inject constructor(val locationTimeRepository: LocationTimeRepository) {
+class GetLocationTimeUseCase @Inject constructor(private val locationTimeRepository: LocationTimeRepository) {
 
-    suspend fun invoke(timeZoneId: String): Flow<String> {
-        return locationTimeRepository.getLocationTime(timeZoneId)
+     fun invoke(timeZoneId: String, updateTime:Boolean): Flow<String> {
+        return locationTimeRepository.getLocationTime(timeZoneId, updateTime)
     }
 
-    suspend fun invoke(locale: Locale): Flow<String> {
-        return locationTimeRepository.getLocationTime(locale)
+     fun invoke(locale: Locale, updateTime:Boolean): Flow<String> {
+        return locationTimeRepository.getLocationTime(locale, updateTime)
     }
 }

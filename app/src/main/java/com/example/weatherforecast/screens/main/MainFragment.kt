@@ -57,12 +57,13 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         hourlyAdapter = HourlyAdapter()
         drawerLayout = binding.mainDrawer
 
+
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val density = displayMetrics.density
         val viewHeight =
             screenHeight - ANDROID_STATUS_BAR_SIZE * density.toInt() -
-                    ANDROID_ACTION_BAR * density.toInt()- SYSTEM_NAVIGATION_BAR_SIZE * density.toInt()  - 220
+                    ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
 
         return binding.root
@@ -75,6 +76,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
 
+
+
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
 //
@@ -86,7 +89,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 viewModel.mainScreenState.collectLatest { state ->
                     state?.let {
                         binding.toolbar.tvToolbarTitle.text = it.city
-                        binding.toolbar.tvCurrentTime.text = it.mainWeatherInfo.currentTime
+                        binding.toolbar.tvCurrentTime.text = it.time
                         binding.mainWeatherWidget.apply {
                             tvMaxTemp.text =
                                 "${it.mainWeatherInfo.maxTemperature}\u00B0C"
@@ -115,6 +118,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         binding.toolbar.mainToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
+        viewModel.getTimeByLocation()
+
 
     }
 
@@ -149,6 +154,11 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             LinearLayoutManager(this@MainFragment.requireContext(), RecyclerView.HORIZONTAL, false)
     }
 
+    override fun onPause() {
+        super.onPause()
+        viewModel.stopTimeObserve()
+
+    }
 
 }
 
