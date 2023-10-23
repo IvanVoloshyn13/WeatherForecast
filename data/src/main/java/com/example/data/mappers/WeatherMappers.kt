@@ -104,13 +104,6 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     )
 }
 
-fun LocalTime.toHour(): String {
-    val time = this.toString()
-    val inputFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
-    val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
-    val parsedDate = inputFormat.parse(time)!!
-    return outputFormat.format(parsedDate)
 
-}
 
 

@@ -4,7 +4,6 @@ package com.example.data.location
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.location.Address
 import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Build
@@ -15,11 +14,8 @@ import com.example.domain.location.FusedLocationProvider
 import com.example.domain.models.CurrentUserLocation
 import com.example.domain.utils.Resource
 import com.google.android.gms.location.FusedLocationProviderClient
-import com.google.android.gms.tasks.OnSuccessListener
-import com.google.android.gms.tasks.Task
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import javax.inject.Inject
@@ -29,7 +25,7 @@ class FusedLocationProviderImpl @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     @ApplicationContext val context: Context
 
-) : FusedLocationProvider {
+) : FusedLocationProvider{
     @OptIn(ExperimentalCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override suspend fun getCurrentUserLocation(
@@ -56,65 +52,66 @@ class FusedLocationProviderImpl @Inject constructor(
         }
         return suspendCancellableCoroutine { continuation ->
 
-                var currentUserLocation: CurrentUserLocation = CurrentUserLocation.DEFAULT
-                val geocoder = Geocoder(context, Locale.getDefault())
-                var latitude: Double
-                var longitude: Double
-                fusedLocationProviderClient.lastLocation.addOnSuccessListener { locationNullable ->
-                    locationNullable?.let { location->
-                        latitude = location.latitude
-                        longitude = location.longitude
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                            geocoder.getFromLocation(
-                                latitude,
-                                longitude,
-                                1,
-                                Geocoder.GeocodeListener {
-                                    if (it.size > 0) {
-                                      val  locale= it[0].locale
-                                        currentUserLocation = CurrentUserLocation(
-                                            latitude = it[0].latitude,
-                                            longitude = it[0].longitude,
-                                            city = it[0].featureName
-                                        )
-                                    }
+            var currentUserLocation: CurrentUserLocation = CurrentUserLocation.DEFAULT
+            val geocoder = Geocoder(context, Locale.getDefault())
+            var latitude: Double
+            var longitude: Double
 
-                                })
+            fusedLocationProviderClient.lastLocation.addOnSuccessListener { locationNullable ->
+                locationNullable?.let { location ->
+                    latitude = location.latitude
+                    longitude = location.longitude
 
-                        }
-                        else {
-                            @Suppress("DEPRECATION")
-                            val address = geocoder.getFromLocation(latitude, longitude, 1)
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                        geocoder.getFromLocation(
+                            latitude,
+                            longitude,
+                            1,
+                            Geocoder.GeocodeListener {
+                                if (it.size > 0) {
+
+                                    currentUserLocation = CurrentUserLocation(
+                                        latitude = it[0].latitude,
+                                        longitude = it[0].longitude,
+                                        city = it[0].featureName,
+                                        timeZoneID = ""
+                                    )
+                                }
+
+                            })
+
+                    } else {
+                        @Suppress("DEPRECATION")
+                        val address = geocoder.getFromLocation(latitude, longitude, 1)
                             if (address?.size!! > 0) {
                                 currentUserLocation = CurrentUserLocation(
                                     latitude = latitude,
                                     longitude = longitude,
-                                    city = address[0].locality
+                                    city = address[0].locality,
+                                    timeZoneID = ""
                                 )
                             }
 
-                        }
-                        continuation.resume(Resource.Success(data = currentUserLocation)) {
-                            continuation.resumeWithException(it)
-                        }
                     }
-
+                    continuation.resume(Resource.Success(data = currentUserLocation)) {
+                        continuation.resumeWithException(it)
+                    }
                 }
-                    .addOnCanceledListener {
-                        Log.d("GPS","On Cancel")
-                    }
-                    .addOnFailureListener {
-                        Log.d("GPS","On Failure")
-
-                    }
-            
 
             }
+                .addOnCanceledListener {
+                    Log.d("GPS", "On Cancel")
+                }
+                .addOnFailureListener {
+                    Log.d("GPS", "On Failure")
+
+                }
 
 
         }
 
 
+    }
 
 
 

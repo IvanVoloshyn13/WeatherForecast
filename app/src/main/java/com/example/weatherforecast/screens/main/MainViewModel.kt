@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.models.CurrentUserLocation
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
+import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
@@ -16,13 +17,10 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -30,10 +28,11 @@ import javax.inject.Inject
 class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
-    private val getLocationTimeUseCase: GetLocationTimeUseCase
+    private val getLocationTimeUseCase: GetLocationTimeUseCase,
+    private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase
 ) : ViewModel() {
 
-    private var timeJob: Job? = null
+    private var savedLocationTimeJob: Job? = null
 
 
     private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -52,6 +51,7 @@ class MainViewModel @Inject constructor(
     init {
 
         getWeatherByCurrentUserLocation()
+
         combine(_weather, _location, _time) { weather, location, time ->
             _mainScreenState.update { state ->
                 state?.copy(
@@ -76,12 +76,21 @@ class MainViewModel @Inject constructor(
                             CurrentUserLocation(
                                 city = currentUserLocation.city,
                                 latitude = currentUserLocation.latitude,
-                                longitude = currentUserLocation.longitude
+                                longitude = currentUserLocation.longitude,
+                                timeZoneID = currentUserLocation.timeZoneID
                             )
                         getWeatherByLocation(
                             currentUserLocation.latitude,
                             currentUserLocation.longitude
                         )
+                        val timezone = getCurrentUserLocationTimeZoneUseCase.invoke(
+                            currentUserLocation.latitude,
+                            currentUserLocation.longitude
+                        )
+                        if(timezone.isNotEmpty()){
+                            getLocationTime(timezone)
+                        }
+
                     }
 
                 }
@@ -136,19 +145,17 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun getTimeByLocation() {
-        timeJob = viewModelScope.launch {
-                getLocationTimeUseCase.invoke("CEST", true).collectLatest {
-                    _time.value = it
-                }
-
+    fun getLocationTime(timeZoneId: String) {
+        savedLocationTimeJob = viewModelScope.launch {
+            getLocationTimeUseCase.invoke(timeZoneId, true).collectLatest {
+                _time.value = it
+            }
         }
-
-
     }
 
-    fun stopTimeObserve(){
-        timeJob?.cancel()
+
+    fun stopTimeObserve() {
+        savedLocationTimeJob?.cancel()
     }
 
 

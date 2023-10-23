@@ -1,9 +1,10 @@
-package com.example.network
+package com.example.network.di
 
+import com.example.network.apiServices.APIWeatherService
+import com.example.network.utils.GoogleMaps
 import com.example.network.utils.OpenMeteoBaseUrl
+import com.example.network.utils.Weather
 import com.slack.eithernet.ApiResultCallAdapterFactory
-import com.squareup.moshi.Moshi
-import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -17,21 +18,12 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal object NetworkModule {
-    @Provides
-    @Singleton
-    fun provideMoshi(): Moshi {
-        return Moshi.Builder().add(KotlinJsonAdapterFactory()).build()
-    }
+internal object WeatherModule {
+
 
     @Provides
     @Singleton
-    fun provideMoshiConverterFactory(moshi: Moshi): MoshiConverterFactory {
-        return MoshiConverterFactory.create(moshi)
-    }
-
-    @Provides
-    @Singleton
+    @Weather
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
         okHttpClient: OkHttpClient
@@ -46,7 +38,9 @@ internal object NetworkModule {
     }
 
     @Provides
-    fun provideWeatherService(retrofit: Retrofit) = retrofit.create(APIWeatherService::class.java)
+    @Singleton
+    fun provideWeatherService(@Weather retrofit: Retrofit) =
+        retrofit.create(APIWeatherService::class.java)
 
 
 }

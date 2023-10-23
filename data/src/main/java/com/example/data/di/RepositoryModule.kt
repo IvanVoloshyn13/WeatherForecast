@@ -1,7 +1,9 @@
 package com.example.data.di
 
 import com.example.data.repository.LocationTimeRepositoryImpl
+import com.example.data.repository.UserLocationTimezoneRepositoryImpl
 import com.example.data.repository.WeatherDataRepositoryImpl
+import com.example.domain.repository.UserLocationTimezone
 import com.example.domain.repository.LocationTimeRepository
 import com.example.domain.repository.WeatherDataRepository
 import dagger.Binds
@@ -17,4 +19,7 @@ abstract class RepositoryModule {
 
     @Binds
     abstract fun bindLocationTimeRepository(locationTimeRepositoryImpl: LocationTimeRepositoryImpl): LocationTimeRepository
+
+    @Binds
+    abstract fun UserLocationTimeZone(userLocationTimezone: UserLocationTimezoneRepositoryImpl):UserLocationTimezone
 }

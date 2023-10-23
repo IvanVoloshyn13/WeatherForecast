@@ -11,7 +11,5 @@ class GetLocationTimeUseCase @Inject constructor(private val locationTimeReposit
         return locationTimeRepository.getLocationTime(timeZoneId, updateTime)
     }
 
-     fun invoke(locale: Locale, updateTime:Boolean): Flow<String> {
-        return locationTimeRepository.getLocationTime(locale, updateTime)
-    }
+
 }

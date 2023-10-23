@@ -8,6 +8,7 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import org.jetbrains.annotations.TestOnly
+import java.text.SimpleDateFormat
 import java.time.Clock
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -25,14 +26,20 @@ class LocationTimeRepositoryImpl @Inject constructor() : LocationTimeRepository 
         while (updateTime) {
             delay(1000)
             time = time.plusSeconds(1)
-            val formattedTime = (time.format(DateTimeFormatter.ISO_LOCAL_TIME))
+            val formattedTime = time.toHour()
             this.emit(formattedTime)
             Log.d("TIME", formattedTime)
         }
     }.flowOn(Dispatchers.IO)
 
-    override fun getLocationTime(locale: Locale, updateTime: Boolean): Flow<String> {
-        TODO()
+
+
+    private fun LocalTime.toHour(): String {
+        val time = this.toString()
+        val inputFormat = SimpleDateFormat("HH:mm:ss", Locale.getDefault())
+        val outputFormat = SimpleDateFormat("HH:mm", Locale.getDefault())
+        val parsedDate = inputFormat.parse(time)!!
+        return outputFormat.format(parsedDate)
 
     }
 
