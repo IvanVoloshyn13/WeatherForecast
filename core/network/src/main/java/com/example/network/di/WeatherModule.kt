@@ -1,8 +1,7 @@
 package com.example.network.di
 
 import com.example.network.apiServices.APIWeatherService
-import com.example.network.utils.GoogleMaps
-import com.example.network.utils.OpenMeteoBaseUrl
+import com.example.network.utils.OpenMeteo
 import com.example.network.utils.Weather
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import dagger.Module
@@ -30,7 +29,7 @@ internal object WeatherModule {
     ): Retrofit {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
         return Retrofit.Builder()
-            .baseUrl(OpenMeteoBaseUrl.OPEN_METEO_BASE_URL)
+            .baseUrl(OpenMeteo.OPEN_METEO_BASE_URL)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
