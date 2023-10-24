@@ -6,14 +6,18 @@ import androidx.lifecycle.viewModelScope
 import com.example.domain.models.CurrentUserLocation
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
-import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
-import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
+import com.example.domain.mainscreen.GetCurrentUserLocationTimeZoneUseCase
+import com.example.domain.mainscreen.GetCurrentUserLocationUseCase
+import com.example.domain.mainscreen.GetLocationTimeUseCase
+import com.example.domain.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
 import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
@@ -23,8 +27,12 @@ import javax.inject.Inject
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
-    private val getWeatherDataUseCase: GetWeatherDataUseCase
+    private val getWeatherDataUseCase: GetWeatherDataUseCase,
+    private val getLocationTimeUseCase: GetLocationTimeUseCase,
+    private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase
 ) : ViewModel() {
+
+    private var savedLocationTimeJob: Job? = null
 
 
     private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
@@ -34,17 +42,23 @@ class MainViewModel @Inject constructor(
     private val _weather = MutableStateFlow<WeatherComponents?>(null)
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
 
+    private val _time = MutableStateFlow<String?>("0:00")
+    val time = _time.asStateFlow()
+
     private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
+
         getWeatherByCurrentUserLocation()
-        combine(_weather, _location) { weather, location ->
+
+        combine(_weather, _location, _time) { weather, location, time ->
             _mainScreenState.update { state ->
                 state?.copy(
                     city = location.city,
                     mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
-                    hourlyForecast = weather?.hourlyForecast?.get(0)
+                    hourlyForecast = weather?.hourlyForecast?.get(0),
+                    time = time ?: ""
                 )
             }
         }.launchIn(viewModelScope)
@@ -62,12 +76,21 @@ class MainViewModel @Inject constructor(
                             CurrentUserLocation(
                                 city = currentUserLocation.city,
                                 latitude = currentUserLocation.latitude,
-                                longitude = currentUserLocation.longitude
+                                longitude = currentUserLocation.longitude,
+                                timeZoneID = currentUserLocation.timeZoneID
                             )
                         getWeatherByLocation(
                             currentUserLocation.latitude,
                             currentUserLocation.longitude
                         )
+                        val timezone = getCurrentUserLocationTimeZoneUseCase.invoke(
+                            currentUserLocation.latitude,
+                            currentUserLocation.longitude
+                        )
+                        if(timezone.isNotEmpty()){
+                            getLocationTime(timezone)
+                        }
+
                     }
 
                 }
@@ -120,6 +143,19 @@ class MainViewModel @Inject constructor(
             is Resource.Error -> {}
             is Resource.Loading -> {}
         }
+    }
+
+    fun getLocationTime(timeZoneId: String) {
+        savedLocationTimeJob = viewModelScope.launch {
+            getLocationTimeUseCase.invoke(timeZoneId, true).collectLatest {
+                _time.value = it
+            }
+        }
+    }
+
+
+    fun stopTimeObserve() {
+        savedLocationTimeJob?.cancel()
     }
 
 

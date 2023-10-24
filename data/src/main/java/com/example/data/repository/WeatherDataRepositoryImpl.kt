@@ -7,11 +7,12 @@ import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.repository.WeatherDataRepository
 import com.example.domain.utils.Resource
 import com.example.http.utils.executeApiCall
-import com.example.network.APIWeatherService
+import com.example.network.apiServices.APIWeatherService
+import com.example.network.utils.Weather
 import javax.inject.Inject
 
 class WeatherDataRepositoryImpl @Inject constructor(
-    private val apiWeatherService: APIWeatherService
+   private val apiWeatherService: APIWeatherService
 ) : WeatherDataRepository {
     @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getWeatherData(

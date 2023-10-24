@@ -5,6 +5,6 @@ import java.util.Locale
 
 
 interface LocationTimeRepository {
-    suspend fun getLocationTime(timeZoneId:String): Flow<String>
-    suspend fun getLocationTime(locale: Locale): Flow<String>
+     fun getLocationTime(timeZoneId:String, updateTime:Boolean): Flow<String>
+
 }

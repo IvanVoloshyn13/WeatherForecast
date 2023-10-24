@@ -9,13 +9,16 @@ data class MainScreenState(
     val mainWeatherInfo: MainWeatherInfo,
     val hourlyForecast: List<HourlyForecast>? = null,
     val dailyForecast: List<DailyForecast>? = null,
+    val time: String
 
-    ) {
+) {
     companion object {
         val Default = MainScreenState(
             city = "",
             mainWeatherInfo = MainWeatherInfo.Default,
+            time = ""
 
-            )
+        )
     }
 }
+

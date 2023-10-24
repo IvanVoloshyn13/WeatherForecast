@@ -86,7 +86,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 viewModel.mainScreenState.collectLatest { state ->
                     state?.let {
                         binding.toolbar.tvToolbarTitle.text = it.city
-                        binding.toolbar.tvCurrentTime.text = it.mainWeatherInfo.currentTime
+                        binding.toolbar.tvCurrentTime.text = it.time
                         binding.mainWeatherWidget.apply {
                             tvMaxTemp.text =
                                 "${it.mainWeatherInfo.maxTemperature}\u00B0C"
