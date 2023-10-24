@@ -1,4 +1,4 @@
-package com.example.network
+package com.example.network.apiServices
 
 import com.example.network.models.WeatherResponse
 import retrofit2.Response

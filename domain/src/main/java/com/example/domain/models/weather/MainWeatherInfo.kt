@@ -7,7 +7,6 @@ data class MainWeatherInfo(
     val minTemperature: Int,
     val weatherType: WeatherType,
     val currentTemperature: Int,
-    val currentTime: String,
 ) {
     companion object {
         val Default = MainWeatherInfo(
@@ -15,7 +14,7 @@ data class MainWeatherInfo(
             minTemperature = 0,
             weatherType = WeatherType.fromWHO(1),
             currentTemperature = 0,
-            currentTime = "0:00",
+
         )
     }
 }
