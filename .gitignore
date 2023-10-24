@@ -7,7 +7,7 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-/core/network/src/main/java/com/example/network/utils/Google.kt
+core/network/src/main/java/com/example/network/utils/Google.kt
 .DS_Store
 /build
 /captures
