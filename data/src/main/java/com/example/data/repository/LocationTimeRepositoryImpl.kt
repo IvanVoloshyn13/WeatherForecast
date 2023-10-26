@@ -21,7 +21,6 @@ class LocationTimeRepositoryImpl @Inject constructor() : LocationTimeRepository 
             time = time.plusSeconds(1)
             val formattedTime = time.toHour()
             this.emit(formattedTime)
-            Log.d("TIME", formattedTime)
         }
     }.flowOn(Dispatchers.IO)
 

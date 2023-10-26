@@ -46,6 +46,8 @@ private fun defaultShouldRetry(exception: Exception) = when (exception) {
 private fun defaultErrorHandler(code: Int, message: String?) = ApiException(code, message)
 
 
+
+
 private fun <T> Response<T>.toResult(errorHandler: (Int, String?) -> Exception): T {
     return try {
         if (isSuccessful) {

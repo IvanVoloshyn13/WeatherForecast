@@ -1,32 +1,24 @@
 package com.example.weatherforecast.screens.main
 
 import android.annotation.SuppressLint
-import android.content.res.Resources
 import android.os.Bundle
-import android.text.Layout
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.view.WindowManager
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
-import androidx.core.view.marginTop
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.RecyclerView.Orientation
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.google.android.material.navigation.NavigationView
@@ -62,9 +54,9 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         val density = displayMetrics.density
         val viewHeight =
             screenHeight - ANDROID_STATUS_BAR_SIZE * density.toInt() -
-                    ANDROID_ACTION_BAR * density.toInt()- SYSTEM_NAVIGATION_BAR_SIZE * density.toInt()  - 220
+                    ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
-
+        Log.d("FRAGMENT", "some message")
         return binding.root
     }
 
@@ -115,8 +107,13 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         binding.toolbar.mainToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
-
     }
+
+    override fun onPause() {
+        super.onPause()
+        viewModel.stopTimeObserve()
+    }
+
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
@@ -125,7 +122,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             }
 
             R.id.current_location -> {
-                viewModel.getWeatherByCurrentUserLocation()
+                viewModel.initMainScreen()
                 drawerLayout.close()
             }
 

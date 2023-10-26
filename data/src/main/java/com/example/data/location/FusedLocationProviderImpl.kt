@@ -19,6 +19,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
 import java.util.Locale
 import javax.inject.Inject
+import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class FusedLocationProviderImpl @Inject constructor(
@@ -69,7 +70,6 @@ class FusedLocationProviderImpl @Inject constructor(
                             1,
                             Geocoder.GeocodeListener {
                                 if (it.size > 0) {
-
                                     currentUserLocation = CurrentUserLocation(
                                         latitude = it[0].latitude,
                                         longitude = it[0].longitude,
@@ -101,9 +101,11 @@ class FusedLocationProviderImpl @Inject constructor(
             }
                 .addOnCanceledListener {
                     Log.d("GPS", "On Cancel")
+                    continuation.resume(Resource.Error(message = "Gps cancelling"))
                 }
                 .addOnFailureListener {
                     Log.d("GPS", "On Failure")
+                    continuation.resume(Resource.Error(message = it.message))
 
                 }
 

@@ -28,7 +28,6 @@ private data class IndexedDailyWeatherData(
 )
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 fun WeatherResponse.toHourlyForecast(): Map<Int, List<HourlyForecast>> {
     return hourly.time.mapIndexed { index, time ->
         val currentTemp = hourly.temperature_2m[index]
@@ -71,7 +70,6 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
 }
 
 @SuppressLint("SimpleDateFormat")
-@RequiresApi(Build.VERSION_CODES.O)
 fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val dailyForecast = toDailyForecast()
     val hourlyForecast = toHourlyForecast()
