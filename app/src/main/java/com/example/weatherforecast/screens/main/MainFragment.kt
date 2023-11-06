@@ -19,6 +19,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.example.domain.connectivity.NetworkObserver
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.google.android.material.navigation.NavigationView
@@ -35,6 +36,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     private val binding by lazy { FragmentMainBinding.inflate(layoutInflater) }
     private lateinit var hourlyAdapter: HourlyAdapter
+    private lateinit var dailyAdapter: DailyAdapter
     private lateinit var menuHost: MenuHost
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menu: Menu
@@ -47,8 +49,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         savedInstanceState: Bundle?
     ): View? {
         hourlyAdapter = HourlyAdapter()
+        dailyAdapter = DailyAdapter()
         drawerLayout = binding.mainDrawer
-
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val density = displayMetrics.density
@@ -56,7 +58,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             screenHeight - ANDROID_STATUS_BAR_SIZE * density.toInt() -
                     ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
-        Log.d("FRAGMENT", "some message")
         return binding.root
     }
 
@@ -66,6 +67,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         val navigationView = binding.mainNavView
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
+        initDailyRecycler()
+
 
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
@@ -74,28 +77,66 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
         lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.RESUMED) {
-                viewModel.mainScreenState.collectLatest { state ->
-                    state?.let {
-                        binding.toolbar.tvToolbarTitle.text = it.city
-                        binding.toolbar.tvCurrentTime.text = it.time
-                        binding.mainWeatherWidget.apply {
-                            tvMaxTemp.text =
-                                "${it.mainWeatherInfo.maxTemperature}\u00B0C"
-                            tvMinTemp.text =
-                                "${it.mainWeatherInfo.minTemperature}\u00B0C"
-                            tvCurrentTemp.text =
-                                "${it.mainWeatherInfo.currentTemperature}\u00B0C"
-                            tvWeatherTypeDesc.text =
-                                it.mainWeatherInfo.weatherType.weatherType
-                            ivWeatherTypeIcon.setImageResource(it.mainWeatherInfo.weatherType.weatherIcon)
+            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
+                viewModel.networkStatus.collectLatest{ network ->
+                    Log.d("NETWORK_FRAGMENT", network.name)
+                    when (network) {
+                        NetworkObserver.NetworkStatus.Available -> {
+                            viewModel.initMainScreen()
+                            viewModel.mainScreenState.collectLatest { state ->
+                                state?.let {
+                                    binding.toolbar.tvToolbarTitle.text = it.city
+                                    binding.toolbar.tvCurrentTime.text = it.time
+                                    binding.mainWeatherWidget.apply {
+                                        tvMaxTemp.text =
+                                            "${it.mainWeatherInfo.maxTemperature}\u00B0C"
+                                        tvMinTemp.text =
+                                            "${it.mainWeatherInfo.minTemperature}\u00B0C"
+                                        tvCurrentTemp.text =
+                                            "${it.mainWeatherInfo.currentTemperature}\u00B0C"
+                                        tvWeatherTypeDesc.text =
+                                            it.mainWeatherInfo.weatherType.weatherType
+                                        ivWeatherTypeIcon.setImageResource(it.mainWeatherInfo.weatherType.weatherIcon)
+                                    }
+
+                                    if (it.hourlyForecast != null)
+                                        hourlyAdapter.submitList(it.hourlyForecast)
+
+                                    if (it.dailyForecast != null) {
+                                        dailyAdapter.submitList(it.dailyForecast)
+                                    }
+
+                                }
+
+                            }
                         }
 
-                        if (it.hourlyForecast != null)
-                            hourlyAdapter.submitList(it.hourlyForecast)
-                    }
+                        NetworkObserver.NetworkStatus.Unavailable -> {
+                            Toast.makeText(
+                                this@MainFragment.requireContext(),
+                                network.name,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
 
+                        NetworkObserver.NetworkStatus.Losing -> {
+                            Toast.makeText(
+                                this@MainFragment.requireContext(),
+                                network.name,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+
+                        NetworkObserver.NetworkStatus.Lost -> {
+                            Toast.makeText(
+                                this@MainFragment.requireContext(),
+                                network.name,
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
                 }
+
             }
         }
 
@@ -144,6 +185,15 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         binding.widgetForecast.rvHourlyForecast.adapter = hourlyAdapter
         binding.widgetForecast.rvHourlyForecast.layoutManager =
             LinearLayoutManager(this@MainFragment.requireContext(), RecyclerView.HORIZONTAL, false)
+    }
+
+    private fun initDailyRecycler() {
+        binding.widgetForecast.rvDaily.adapter = dailyAdapter
+        binding.widgetForecast.rvDaily.layoutManager = LinearLayoutManager(
+            this@MainFragment.requireContext(),
+            RecyclerView.VERTICAL, false
+        )
+
     }
 
 

@@ -7,6 +7,7 @@ import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.repository.WeatherDataRepository
 import com.example.domain.utils.Resource
 import com.example.http.exeptions.ApiException
+import com.example.http.utils.ApiResult
 import com.example.http.utils.executeApiCall
 import com.example.network.apiServices.APIWeatherService
 import kotlinx.coroutines.Dispatchers
@@ -16,7 +17,6 @@ import javax.inject.Inject
 class WeatherDataRepositoryImpl @Inject constructor(
     private val apiWeatherService: APIWeatherService
 ) : WeatherDataRepository {
-    @RequiresApi(Build.VERSION_CODES.O)
     override suspend fun getWeatherData(
         latitude: Double,
         longitude: Double
@@ -29,14 +29,14 @@ class WeatherDataRepositoryImpl @Inject constructor(
             )
         })
 
-        return@withContext if (networkResult != null) {
-            val weatherComponents = networkResult.toWeatherComponents()
-            Resource.Success(
-                weatherComponents
-            )
-        } else {
+        when (networkResult) {
+            is ApiResult.Success -> {
+                return@withContext Resource.Success(networkResult.data.toWeatherComponents())
+            }
 
-            return@withContext Resource.Error(message = TODO())
+            is ApiResult.Error -> {
+                return@withContext Resource.Error(data = null, networkResult.message)
+            }
         }
 
     }

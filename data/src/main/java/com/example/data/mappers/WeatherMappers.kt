@@ -63,7 +63,7 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
             )
         )
     }.groupBy {
-        it.index
+        it.index/7
     }.mapValues {
         it.value.map { dailyWeatherData -> dailyWeatherData.data }
     }

@@ -1,8 +1,6 @@
 package com.example.http.utils
 
-import java.lang.Exception
-
-sealed class ApiResult<out T> {
+sealed class ApiResult<T> {
     data class Success<T>(val data: T) : ApiResult<T>()
-    data class Error<T>(val exception: Exception) : ApiResult<Nothing>()
+    data class Error<T>(val message: String?) : ApiResult<T>()
 }
