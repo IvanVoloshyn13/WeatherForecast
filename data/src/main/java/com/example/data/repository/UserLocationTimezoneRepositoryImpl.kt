@@ -1,7 +1,9 @@
 package com.example.data.repository
 
+import androidx.datastore.preferences.protobuf.Api
 import com.example.domain.repository.UserLocationTimezone
 import com.example.domain.utils.Resource
+import com.example.http.utils.ApiResult
 import com.example.http.utils.executeApiCall
 import com.example.network.apiServices.ApiGoogleTimezoneService
 import kotlinx.coroutines.Dispatchers
@@ -23,11 +25,14 @@ class UserLocationTimezoneRepositoryImpl @Inject constructor(
                     timeStamp
                 )
             })
-            return@withContext if (body != null) {
-                Resource.Success(body.timeZoneId)
-            } else {
+            when (body) {
+                is ApiResult.Success -> {
+                    return@withContext Resource.Success(body.data.timeZoneId)
+                }
 
-                return@withContext Resource.Error(message = TODO())
+                is ApiResult.Error -> {
+                    return@withContext Resource.Error(data = null, message = body.message)
+                }
             }
         }
 

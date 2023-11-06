@@ -1,4 +1,4 @@
-package com.example.domain.mainscreen
+package com.example.domain.usecase.mainscreen
 
 import com.example.domain.repository.UserLocationTimezone
 import com.example.domain.utils.Resource

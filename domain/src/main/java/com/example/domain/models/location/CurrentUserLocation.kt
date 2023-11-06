@@ -1,6 +1,4 @@
-package com.example.domain.models
-
-import java.util.Locale
+package com.example.domain.models.location
 
 data class CurrentUserLocation(
     val latitude: Double,
