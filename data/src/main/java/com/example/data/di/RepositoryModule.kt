@@ -13,13 +13,14 @@ import dagger.hilt.components.SingletonComponent
 
 @Module
 @InstallIn(SingletonComponent::class)
- interface RepositoryModule {
+interface RepositoryModule {
     @Binds
-     fun bindWeatherRepository(weatherDataRepositoryImpl: WeatherDataRepositoryImpl): WeatherDataRepository
+    fun bindWeatherRepository(weatherDataRepositoryImpl: WeatherDataRepositoryImpl): WeatherDataRepository
 
     @Binds
-     fun bindLocationTimeRepository(locationTimeRepositoryImpl: LocationTimeRepositoryImpl): LocationTimeRepository
+    fun bindLocationTimeRepository(locationTimeRepositoryImpl: LocationTimeRepositoryImpl): LocationTimeRepository
 
     @Binds
-     fun UserLocationTimezone(userLocationTimezone: UserLocationTimezoneRepositoryImpl): UserLocationTimezone
+    fun userLocationTimezone(userLocationTimezone: UserLocationTimezoneRepositoryImpl): UserLocationTimezone
+
 }
