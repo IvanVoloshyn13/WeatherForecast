@@ -10,19 +10,17 @@ import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
-import com.example.domain.usecase.mainscreen.GetNetworkStatusUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
+import com.example.domain.usecase.mainscreen.ObserveNetworkStatusUseCase
 import com.example.domain.utils.Resource
+import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -30,9 +28,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.job
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -43,7 +39,7 @@ class MainViewModel @Inject constructor(
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
     private val getLocationTimeUseCase: GetLocationTimeUseCase,
     private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase,
-    private val networkStatusUseCase: GetNetworkStatusUseCase
+    private val networkStatusUseCase: ObserveNetworkStatusUseCase,
 ) : ViewModel() {
 
     private var locationTimeJob: Job? = null
@@ -53,31 +49,49 @@ class MainViewModel @Inject constructor(
     }
 
     private val _weather = MutableStateFlow<WeatherComponents?>(null)
-
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
-
     private val _time = MutableStateFlow<String?>("0:00")
-
-    private val _networkStatus = Channel<NetworkObserver.NetworkStatus>(onBufferOverflow = BufferOverflow.SUSPEND)
-    val networkStatus = _networkStatus.receiveAsFlow()
-
     private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
     val mainScreenState = _mainScreenState.asStateFlow()
+    private val _networkStatus = MutableSharedFlow<NetworkObserver.NetworkStatus>(
+        onBufferOverflow = BufferOverflow.SUSPEND,
+        replay = 0
+    )
+    val network = _networkStatus.asSharedFlow()
 
     init {
+
         observeNetworkStatus()
-       // initMainScreen()
-        combine(_weather, _location, _time) { weather, location, time ->
+        combine(
+            _weather,
+            _location,
+            _time,
+            _networkStatus
+        ) { weather, location, time, networkStatus ->
             _mainScreenState.update { state ->
                 state?.copy(
-                    city = location.city,
+                    location = location.city,
                     mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
                     hourlyForecast = weather?.hourlyForecast?.get(0),
                     dailyForecast = weather?.dailyForecast?.get(0),
-                    time = time ?: ""
+                    time = time ?: "",
+//                    networkStatus = networkStatus
                 )
             }
         }.launchIn(viewModelScope)
+
+    }
+
+    fun setEvent(event: MainScreenEvents) {
+        when (event) {
+            MainScreenEvents.CheckNetworkConnection -> {
+                observeNetworkStatus()
+            }
+
+            MainScreenEvents.GetWeatherByCurrentLocation -> {
+                initMainScreen()
+            }
+        }
     }
 
     fun initMainScreen() {
@@ -94,22 +108,18 @@ class MainViewModel @Inject constructor(
                                 longitude = currentUserLocation.longitude,
                                 timeZoneID = currentUserLocation.timeZoneID
                             )
+                        val timezone = async {
+                            getCurrentUserLocationTimeZoneUseCase.invoke(
+                                currentUserLocation.latitude,
+                                currentUserLocation.longitude
+                            )
 
-                        val timezone =
-                            async {
-                                getCurrentUserLocationTimeZoneUseCase.invoke(
-                                    currentUserLocation.latitude,
-                                    currentUserLocation.longitude
-                                )
-
-                            }.await()
-
+                        }.await()
                         timezone.data?.let {
                             if (it.isNotEmpty()) {
                                 getLocationTime(it)
                             }
                         }
-
                         async {
                             getWeatherByLocation(
                                 currentUserLocation.latitude,
@@ -120,29 +130,22 @@ class MainViewModel @Inject constructor(
                 }
 
                 is Resource.Error -> {
-                    Log.d("ERROR_LOG", locationResource.message.toString())
-
+                    TODO()
                 }
 
-                else -> {
-                    Log.d("LOG", "Some Error")
+                is Resource.Loading -> {
+                    TODO()
                 }
             }
-
         }
-
     }
 
     private fun observeNetworkStatus() {
         viewModelScope.launch {
             networkStatusUseCase.invoke().collect {
-                _networkStatus.send(it)
-                Log.d("NETWORK",it.name)
+                _networkStatus.emit(it)
             }
-
         }
-
-
     }
 
     private suspend fun getWeatherByLocation(latitude: Double, longitude: Double) {
@@ -168,8 +171,6 @@ class MainViewModel @Inject constructor(
             is Resource.Error -> {}
             is Resource.Loading -> {}
         }
-
-
     }
 
     fun getLocationTime(timeZoneId: String) {
@@ -183,12 +184,6 @@ class MainViewModel @Inject constructor(
 
     fun stopTimeObserve() {
         locationTimeJob?.cancel()
-    }
-
-
-    override fun onCleared() {
-        super.onCleared()
-
     }
 
 

@@ -2,7 +2,6 @@ package com.example.weatherforecast.screens.main
 
 import android.annotation.SuppressLint
 import android.os.Bundle
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
@@ -14,14 +13,14 @@ import androidx.core.view.MenuHost
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.domain.connectivity.NetworkObserver
 import com.example.weatherforecast.R
+import com.example.weatherforecast.UpdateGpsStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
+import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.flow.collectLatest
@@ -40,8 +39,9 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
     private lateinit var menuHost: MenuHost
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menu: Menu
-    private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
+    private lateinit var fragmentActivity: UpdateGpsStatus
 
+    private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -51,6 +51,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         hourlyAdapter = HourlyAdapter()
         dailyAdapter = DailyAdapter()
         drawerLayout = binding.mainDrawer
+        fragmentActivity = activity as UpdateGpsStatus
+
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val density = displayMetrics.density
@@ -68,7 +70,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
         initDailyRecycler()
-
+        observeGpsStatus()
 
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
@@ -76,72 +78,87 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 //        for (index in list.indices) {
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
-        lifecycleScope.launch {
-            viewLifecycleOwner.repeatOnLifecycle(Lifecycle.State.CREATED) {
-                viewModel.networkStatus.collectLatest{ network ->
-                    Log.d("NETWORK_FRAGMENT", network.name)
-                    when (network) {
-                        NetworkObserver.NetworkStatus.Available -> {
-                            viewModel.initMainScreen()
-                            viewModel.mainScreenState.collectLatest { state ->
-                                state?.let {
-                                    binding.toolbar.tvToolbarTitle.text = it.city
-                                    binding.toolbar.tvCurrentTime.text = it.time
-                                    binding.mainWeatherWidget.apply {
-                                        tvMaxTemp.text =
-                                            "${it.mainWeatherInfo.maxTemperature}\u00B0C"
-                                        tvMinTemp.text =
-                                            "${it.mainWeatherInfo.minTemperature}\u00B0C"
-                                        tvCurrentTemp.text =
-                                            "${it.mainWeatherInfo.currentTemperature}\u00B0C"
-                                        tvWeatherTypeDesc.text =
-                                            it.mainWeatherInfo.weatherType.weatherType
-                                        ivWeatherTypeIcon.setImageResource(it.mainWeatherInfo.weatherType.weatherIcon)
-                                    }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.network.collectLatest { network ->
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    network.name,
+                    Toast.LENGTH_SHORT
+                ).show()
+                when (network) {
+                    NetworkObserver.NetworkStatus.Available -> {
+                        viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
+                    }
 
-                                    if (it.hourlyForecast != null)
-                                        hourlyAdapter.submitList(it.hourlyForecast)
+                    NetworkObserver.NetworkStatus.Unavailable -> {
+                        Toast.makeText(
+                            this@MainFragment.requireContext(),
+                            network.name,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
-                                    if (it.dailyForecast != null) {
-                                        dailyAdapter.submitList(it.dailyForecast)
-                                    }
+                    NetworkObserver.NetworkStatus.Losing -> {
+                        Toast.makeText(
+                            this@MainFragment.requireContext(),
+                            network.name,
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
 
-                                }
-
-                            }
-                        }
-
-                        NetworkObserver.NetworkStatus.Unavailable -> {
-                            Toast.makeText(
-                                this@MainFragment.requireContext(),
-                                network.name,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-
-                        NetworkObserver.NetworkStatus.Losing -> {
-                            Toast.makeText(
-                                this@MainFragment.requireContext(),
-                                network.name,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-
-                        NetworkObserver.NetworkStatus.Lost -> {
-                            Toast.makeText(
-                                this@MainFragment.requireContext(),
-                                network.name,
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
+                    NetworkObserver.NetworkStatus.Lost -> {
+                        Toast.makeText(
+                            this@MainFragment.requireContext(),
+                            network.name,
+                            Toast.LENGTH_SHORT
+                        ).show()
                     }
                 }
+            }
+        }
+        viewLifecycleOwner.lifecycleScope.launch {
+            viewModel.mainScreenState.collectLatest { state ->
 
+                state?.let {
+                    binding.toolbar.tvToolbarTitle.text = it.location
+                    binding.toolbar.tvCurrentTime.text = it.time
+                    binding.mainWeatherWidget.apply {
+                        tvMaxTemp.text =
+                            "${it.mainWeatherInfo.maxTemperature}\u00B0C"
+                        tvMinTemp.text =
+                            "${it.mainWeatherInfo.minTemperature}\u00B0C"
+                        tvCurrentTemp.text =
+                            "${it.mainWeatherInfo.currentTemperature}\u00B0C"
+                        tvWeatherTypeDesc.text =
+                            it.mainWeatherInfo.weatherType.weatherType
+                        ivWeatherTypeIcon.setImageResource(it.mainWeatherInfo.weatherType.weatherIcon)
+                    }
+
+                    if (it.hourlyForecast != null)
+                        hourlyAdapter.submitList(it.hourlyForecast)
+
+                    if (it.dailyForecast != null) {
+                        dailyAdapter.submitList(it.dailyForecast)
+                    }
+
+                }
             }
         }
 
 
     }
+
+    private fun observeGpsStatus() {
+        if (fragmentActivity is UpdateGpsStatus && fragmentActivity != null) {
+            viewLifecycleOwner.lifecycleScope.launch {
+                fragmentActivity.gpsStatusFlow.collectLatest {
+                    Toast.makeText(this@MainFragment.requireContext(), it.name, Toast.LENGTH_SHORT).show()
+                }
+            }
+
+        }
+    }
+
 
     override fun onResume() {
         super.onResume()
