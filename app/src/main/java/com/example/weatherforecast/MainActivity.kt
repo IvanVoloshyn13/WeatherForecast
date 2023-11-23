@@ -1,7 +1,6 @@
 package com.example.weatherforecast
 
 import android.Manifest
-import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -9,30 +8,38 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import androidx.lifecycle.lifecycleScope
+import com.example.weatherforecast.connectivity.ConnectivityNetworkObserver
+import com.example.weatherforecast.connectivity.ConnectivityStatus
+import com.example.weatherforecast.connectivity.GpsStatus
+import com.example.weatherforecast.connectivity.GpsStatusBroadcastReceiver
+import com.example.weatherforecast.connectivity.NetworkStatus
+import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.ActivityMainBinding
-import com.example.weatherforecast.utils.GpsStatus
-import com.example.weatherforecast.utils.GpsStatusBroadcastReceiver
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.isActive
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.collectLatest
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusListener,
-    UpdateGpsStatus {
+class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusListener,
+    UpdateConnectivityStatus {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
-    lateinit var gpsStatusBroadcastReceiver: GpsStatusBroadcastReceiver
-    private lateinit var scope:CoroutineScope
+    private lateinit var gpsStatusBroadcastReceiver: GpsStatusBroadcastReceiver
+    private lateinit var connectivityNetworkObserver: ConnectivityNetworkObserver
+    private lateinit var scope: CoroutineScope
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         gpsStatusBroadcastReceiver = GpsStatusBroadcastReceiver(this, applicationContext)
-        scope= CoroutineScope(Dispatchers.IO)
+        connectivityNetworkObserver = ConnectivityNetworkObserver(this)
+
+        scope = CoroutineScope(Dispatchers.IO)
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -71,12 +78,20 @@ class MainActivity : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusLi
         val filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
         this.registerReceiver(gpsStatusBroadcastReceiver, filter)
         super.onResume()
+        scope.launch {
+            connectivityNetworkObserver.observe().collectLatest { network ->
+                networkStatus.update {
+                    it.copy(networkStatus = network)
+                }
+            }
+        }
 
     }
 
     override fun onPause() {
         super.onPause()
         this.unregisterReceiver(gpsStatusBroadcastReceiver)
+
     }
 
 //    private fun initNavigation() {
@@ -91,13 +106,20 @@ class MainActivity : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusLi
 
     override fun receiveGpsStatus(gpsStatus: GpsStatus) {
         scope.launch {
-            gpsStatusFlow.emit(gpsStatus)
+            networkStatus.update {
+                it.copy(gpsStatus = gpsStatus)
+            }
         }
     }
 
 
     override val gpsStatusFlow: MutableSharedFlow<GpsStatus> =
         MutableSharedFlow(onBufferOverflow = BufferOverflow.SUSPEND, replay = 0)
+
+    override val networkStatusFlow: MutableSharedFlow<NetworkStatus> =
+        MutableSharedFlow(onBufferOverflow = BufferOverflow.SUSPEND, replay = 0)
+    override val networkStatus: MutableStateFlow<ConnectivityStatus>
+         = MutableStateFlow(ConnectivityStatus.DEFAULT)
 
 
 }

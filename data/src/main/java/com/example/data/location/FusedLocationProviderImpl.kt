@@ -100,11 +100,9 @@ class FusedLocationProviderImpl @Inject constructor(
 
             }
                 .addOnCanceledListener {
-                    Log.d("GPS", "On Cancel")
                     continuation.resume(Resource.Error(message = "Gps cancelling"))
                 }
                 .addOnFailureListener {
-                    Log.d("GPS", "On Failure")
                     continuation.resume(Resource.Error(message = it.message))
 
                 }

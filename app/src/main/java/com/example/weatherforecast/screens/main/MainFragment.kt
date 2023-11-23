@@ -16,9 +16,11 @@ import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.domain.connectivity.NetworkObserver
+import com.example.weatherforecast.MainActivity
 import com.example.weatherforecast.R
-import com.example.weatherforecast.UpdateGpsStatus
+import com.example.weatherforecast.connectivity.GpsStatus
+import com.example.weatherforecast.connectivity.NetworkStatus
+import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
@@ -39,7 +41,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
     private lateinit var menuHost: MenuHost
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menu: Menu
-    private lateinit var fragmentActivity: UpdateGpsStatus
+    private lateinit var fragmentActivity: UpdateConnectivityStatus
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
@@ -51,7 +53,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         hourlyAdapter = HourlyAdapter()
         dailyAdapter = DailyAdapter()
         drawerLayout = binding.mainDrawer
-        fragmentActivity = activity as UpdateGpsStatus
+        fragmentActivity = activity as MainActivity
 
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
@@ -70,7 +72,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
         initDailyRecycler()
-        observeGpsStatus()
+        observeConnectivityStatus()
 
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
@@ -78,44 +80,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 //        for (index in list.indices) {
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
-        viewLifecycleOwner.lifecycleScope.launch {
-            viewModel.network.collectLatest { network ->
-                Toast.makeText(
-                    this@MainFragment.requireContext(),
-                    network.name,
-                    Toast.LENGTH_SHORT
-                ).show()
-                when (network) {
-                    NetworkObserver.NetworkStatus.Available -> {
-                        viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
-                    }
 
-                    NetworkObserver.NetworkStatus.Unavailable -> {
-                        Toast.makeText(
-                            this@MainFragment.requireContext(),
-                            network.name,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
 
-                    NetworkObserver.NetworkStatus.Losing -> {
-                        Toast.makeText(
-                            this@MainFragment.requireContext(),
-                            network.name,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
-                    NetworkObserver.NetworkStatus.Lost -> {
-                        Toast.makeText(
-                            this@MainFragment.requireContext(),
-                            network.name,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                }
-            }
-        }
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
 
@@ -148,12 +114,69 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     }
 
-    private fun observeGpsStatus() {
-        if (fragmentActivity is UpdateGpsStatus && fragmentActivity != null) {
+    private fun observeConnectivityStatus() {
+        if (fragmentActivity is UpdateConnectivityStatus && fragmentActivity != null) {
             viewLifecycleOwner.lifecycleScope.launch {
-                fragmentActivity.gpsStatusFlow.collectLatest {
-                    Toast.makeText(this@MainFragment.requireContext(), it.name, Toast.LENGTH_SHORT).show()
+                fragmentActivity.networkStatus.collectLatest {
+                    observeGpsStatus(it.gpsStatus)
+                    observeNetworkStatus(it.networkStatus)
                 }
+            }
+        }
+    }
+
+    private fun observeGpsStatus(status: GpsStatus) {
+        when (status) {
+            GpsStatus.Unavailable -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.VISIBLE
+                binding.mainGroup.visibility = View.GONE
+            }
+
+            GpsStatus.Available -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.GONE
+                binding.mainGroup.visibility = View.VISIBLE
+                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    status.name,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+        }
+    }
+
+
+    private fun observeNetworkStatus(network: NetworkStatus) {
+        when (network) {
+            NetworkStatus.Available -> {
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    network.name,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+            NetworkStatus.Unavailable -> {
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    network.name,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            NetworkStatus.Losing -> {
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    network.name,
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
+
+            NetworkStatus.Lost -> {
+                Toast.makeText(
+                    this@MainFragment.requireContext(),
+                    network.name,
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
         }
@@ -180,7 +203,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             }
 
             R.id.current_location -> {
-                viewModel.initMainScreen()
+                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
                 drawerLayout.close()
             }
 

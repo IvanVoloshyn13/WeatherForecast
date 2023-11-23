@@ -1,4 +1,4 @@
-package com.example.weatherforecast.utils
+package com.example.weatherforecast.connectivity
 
 import android.content.BroadcastReceiver
 import android.content.Context
@@ -40,3 +40,4 @@ fun Boolean.toGpsStatus(): GpsStatus {
 enum class GpsStatus {
     Available, Unavailable
 }
+

@@ -3,7 +3,6 @@ package com.example.weatherforecast.screens.main
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.connectivity.NetworkObserver
 import com.example.domain.models.location.CurrentUserLocation
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
@@ -11,7 +10,6 @@ import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCa
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
-import com.example.domain.usecase.mainscreen.ObserveNetworkStatusUseCase
 import com.example.domain.utils.Resource
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.example.weatherforecast.screens.main.models.MainScreenState
@@ -20,10 +18,7 @@ import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
-import kotlinx.coroutines.channels.BufferOverflow
-import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
@@ -39,7 +34,7 @@ class MainViewModel @Inject constructor(
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
     private val getLocationTimeUseCase: GetLocationTimeUseCase,
     private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase,
-    private val networkStatusUseCase: ObserveNetworkStatusUseCase,
+
 ) : ViewModel() {
 
     private var locationTimeJob: Job? = null
@@ -53,21 +48,15 @@ class MainViewModel @Inject constructor(
     private val _time = MutableStateFlow<String?>("0:00")
     private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
     val mainScreenState = _mainScreenState.asStateFlow()
-    private val _networkStatus = MutableSharedFlow<NetworkObserver.NetworkStatus>(
-        onBufferOverflow = BufferOverflow.SUSPEND,
-        replay = 0
-    )
-    val network = _networkStatus.asSharedFlow()
+
 
     init {
-
-        observeNetworkStatus()
         combine(
             _weather,
             _location,
             _time,
-            _networkStatus
-        ) { weather, location, time, networkStatus ->
+
+        ) { weather, location, time,->
             _mainScreenState.update { state ->
                 state?.copy(
                     location = location.city,
@@ -84,12 +73,9 @@ class MainViewModel @Inject constructor(
 
     fun setEvent(event: MainScreenEvents) {
         when (event) {
-            MainScreenEvents.CheckNetworkConnection -> {
-                observeNetworkStatus()
-            }
-
             MainScreenEvents.GetWeatherByCurrentLocation -> {
-                initMainScreen()
+              initMainScreen()
+
             }
         }
     }
@@ -140,13 +126,7 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun observeNetworkStatus() {
-        viewModelScope.launch {
-            networkStatusUseCase.invoke().collect {
-                _networkStatus.emit(it)
-            }
-        }
-    }
+
 
     private suspend fun getWeatherByLocation(latitude: Double, longitude: Double) {
         val weatherResource = getWeatherDataUseCase.invoke(
