@@ -1,11 +1,16 @@
 package com.example.weatherforecast
 
 import android.Manifest
+import android.content.Context
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
+import android.os.Build
+import android.os.Build.VERSION_CODES
 import android.os.Bundle
+import android.os.PersistableBundle
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.weatherforecast.connectivity.ConnectivityNetworkObserver
@@ -14,6 +19,7 @@ import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.GpsStatusBroadcastReceiver
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
+import com.example.weatherforecast.connectivity.toGpsStatus
 import com.example.weatherforecast.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineScope
@@ -32,14 +38,18 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
     private lateinit var gpsStatusBroadcastReceiver: GpsStatusBroadcastReceiver
     private lateinit var connectivityNetworkObserver: ConnectivityNetworkObserver
     private lateinit var scope: CoroutineScope
+    private var _gpsStatus:GpsStatus=GpsStatus.Available
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(binding.root)
         gpsStatusBroadcastReceiver = GpsStatusBroadcastReceiver(this, applicationContext)
         connectivityNetworkObserver = ConnectivityNetworkObserver(this)
-
         scope = CoroutineScope(Dispatchers.IO)
+        if (savedInstanceState == null) {
+            val gpsStatus = checkGpsStatus()
+            receiveGpsStatus(gpsStatus)
+        }
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -85,7 +95,28 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
                 }
             }
         }
+    }
 
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        outState.putSerializable(GPS_STATUS_KEY,_gpsStatus)
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        if(Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
+            val gpsStatus = savedInstanceState.getSerializable(GPS_STATUS_KEY, GpsStatus::class.java)
+            if (gpsStatus != null) {
+                receiveGpsStatus( gpsStatus )
+            }
+        }
+        else{
+            val gpsStatus = savedInstanceState.getSerializable(GPS_STATUS_KEY)
+            if (gpsStatus != null) {
+                receiveGpsStatus(gpsStatus as GpsStatus)
+            }
+        }
     }
 
     override fun onPause() {
@@ -100,9 +131,6 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 //        navController?.navigate(R.id.mainFragment)
 //    }
 
-    companion object {
-        const val request_code = 201
-    }
 
     override fun receiveGpsStatus(gpsStatus: GpsStatus) {
         scope.launch {
@@ -110,6 +138,7 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
                 it.copy(gpsStatus = gpsStatus)
             }
         }
+        _gpsStatus=gpsStatus
     }
 
 
@@ -118,10 +147,20 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 
     override val networkStatusFlow: MutableSharedFlow<NetworkStatus> =
         MutableSharedFlow(onBufferOverflow = BufferOverflow.SUSPEND, replay = 0)
-    override val networkStatus: MutableStateFlow<ConnectivityStatus>
-         = MutableStateFlow(ConnectivityStatus.DEFAULT)
+    override val networkStatus: MutableStateFlow<ConnectivityStatus> =
+        MutableStateFlow(ConnectivityStatus.DEFAULT)
 
+    private fun checkGpsStatus(): GpsStatus {
+        val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
+        val isProviderEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+        return isProviderEnabled.toGpsStatus()
+    }
 
+    companion object {
+        const val GPS_STATUS_KEY="SAVED_GPS"
+        const val request_code = 201
+    }
 }
+
 
 
