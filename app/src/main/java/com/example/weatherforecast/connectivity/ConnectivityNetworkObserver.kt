@@ -26,7 +26,7 @@ class ConnectivityNetworkObserver @Inject constructor(
         return callbackFlow {
             launch {
                 if (networkStatus == null) {
-                    trySend(NetworkStatus.Unavailable)
+                    trySend(NetworkStatus.Lost)
                 }
             }
             val callback = object : ConnectivityManager.NetworkCallback() {
@@ -36,14 +36,6 @@ class ConnectivityNetworkObserver @Inject constructor(
                         trySend(NetworkStatus.Available)
                     }
                 }
-
-                override fun onLosing(network: Network, maxMsToLive: Int) {
-                    super.onLosing(network, maxMsToLive)
-                    launch {
-                        trySend(NetworkStatus.Losing)
-                    }
-                }
-
                 override fun onLost(network: Network) {
                     super.onLost(network)
                     launch {
@@ -51,12 +43,6 @@ class ConnectivityNetworkObserver @Inject constructor(
                     }
                 }
 
-                override fun onUnavailable() {
-                    super.onUnavailable()
-                    launch {
-                        trySend(NetworkStatus.Unavailable)
-                    }
-                }
 
             }
             connectivityManager.registerDefaultNetworkCallback(callback)
@@ -70,5 +56,5 @@ class ConnectivityNetworkObserver @Inject constructor(
 }
 
 enum class NetworkStatus {
-    Available, Unavailable, Losing, Lost
+    Available,  Lost
 }
