@@ -58,7 +58,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         dailyAdapter = DailyAdapter()
         drawerLayout = binding.mainDrawer
 
-
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val density = displayMetrics.density
@@ -76,7 +75,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
         initDailyRecycler()
-
         observeConnectivityStatus()
 
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")

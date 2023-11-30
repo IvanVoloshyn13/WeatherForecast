@@ -61,7 +61,7 @@ class MainViewModel @Inject constructor(
                 state?.copy(
                     location = location.city,
                     mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
-                    hourlyForecast = weather?.hourlyForecast?.get(0),
+                    hourlyForecast = weather?.hourlyForecast,
                     dailyForecast = weather?.dailyForecast?.get(0),
                     time = time ?: "",
 //                    networkStatus = networkStatus
