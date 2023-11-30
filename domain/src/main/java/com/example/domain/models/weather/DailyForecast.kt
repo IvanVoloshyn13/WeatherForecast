@@ -4,5 +4,5 @@ data class DailyForecast(
     val weatherType: WeatherType,
     val maxTemperature: Int,
     val minTemperature: Int,
-    val time:String
+    val dayOfTheWeek: String
 )

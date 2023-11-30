@@ -19,7 +19,7 @@ class DailyAdapter : RecyclerView.Adapter<DailyAdapter.DailyViewHolder>() {
                 ivWeatherType.setImageResource(data.weatherType.weatherIcon)
                 tvMaxTemp.text = data.maxTemperature.toString()
                 tvMinTemp.text = data.minTemperature.toString()
-                tvDayOfWeek.text = "ToDo"
+                tvDayOfWeek.text = data.dayOfTheWeek
             }
 
         }

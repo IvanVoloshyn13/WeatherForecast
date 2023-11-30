@@ -15,7 +15,8 @@
         android:paddingStart="4dp"
         android:text="Day of week"
         android:textAppearance="@style/TextAppearance.WeatherForecast.ToolBarAppName"
-        android:textSize="22sp"
+        android:textSize="16sp"
+        android:textAllCaps="false"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 

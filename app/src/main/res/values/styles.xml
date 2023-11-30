@@ -6,7 +6,8 @@
         <item name="android:textSize">12sp</item>
     </style>
 
-    <style name="TextAppearance.WeatherForecast.ToolBarAppName" parent="TextAppearance.AppCompat.Headline">
+    <style name="TextAppearance.WeatherForecast.ToolBarAppName"
+        parent="TextAppearance.AppCompat.Headline">
         <item name="android:textColor">?attr/colorAccent</item>
         <item name="android:textSize">16sp</item>
     </style>

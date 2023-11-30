@@ -7,6 +7,7 @@ import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.models.weather.WeatherType
 import com.example.network.models.WeatherResponse
+import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -47,7 +48,7 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
     return List(daily.time.size) { index ->
         val maxTemperature = daily.temperature_2m_max[index].toInt()
         val minTemperature = daily.temperature_2m_min[index].toInt()
-        val dayTime = daily.time[index]
+        val dayTime = daily.time.toListOfTheDayWeek()[index]
         val weatherType = WeatherType.fromWHO(daily.weathercode[index])
         IndexedDailyWeatherData(
             index = index,
@@ -55,7 +56,7 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
                 weatherType = weatherType,
                 maxTemperature = maxTemperature,
                 minTemperature = minTemperature,
-                time = dayTime
+                dayOfTheWeek = dayTime
             )
         )
     }.groupBy {
@@ -87,7 +88,8 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     currentHourWeatherType = currentHourWeather.weatherType
 
     return WeatherComponents(
-        dailyForecast = dailyForecast, hourlyForecast = toHourlyForecastList(),
+        dailyForecast = dailyForecast[0] as ArrayList<DailyForecast>,
+        hourlyForecast = toHourlyForecastList(),
         mainWeatherInfo = MainWeatherInfo(
             todayMaxTemp,
             todayMinTemp,
@@ -117,6 +119,18 @@ fun WeatherResponse.toHourlyForecastList(): ArrayList<HourlyForecast> {
         todayHourly as ArrayList<HourlyForecast>
     }
 
+}
+
+
+typealias ListOfTheWeekDate = List<String>
+
+fun ListOfTheWeekDate.toListOfTheDayWeek(): ArrayList<String> {
+    val daysList = ArrayList<String>()
+    forEach { item ->
+        val weekDay = LocalDate.parse(item).dayOfWeek.name
+        daysList.add(weekDay)
+    }
+    return daysList
 }
 
 
