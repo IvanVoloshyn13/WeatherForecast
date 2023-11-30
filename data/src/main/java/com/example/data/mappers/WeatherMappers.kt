@@ -1,21 +1,17 @@
 package com.example.data.mappers
 
 import android.annotation.SuppressLint
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.domain.models.weather.DailyForecast
 import com.example.domain.models.weather.HourlyForecast
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.models.weather.WeatherType
-
 import com.example.network.models.WeatherResponse
-import java.text.SimpleDateFormat
 import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
-import java.util.Locale
+import java.util.stream.Stream
 
 private data class IndexedHourlyWeatherData(
     val index: Int,
@@ -63,7 +59,7 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
             )
         )
     }.groupBy {
-        it.index/7
+        it.index / 7
     }.mapValues {
         it.value.map { dailyWeatherData -> dailyWeatherData.data }
     }
@@ -75,24 +71,23 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val hourlyForecast = toHourlyForecast()
     var todayMaxTemp: Int = 0
     var todayMinTemp: Int = 0
-    var currentHourWeatherType: WeatherType = WeatherType.fromWHO(0)
+    var currentHourWeatherType: WeatherType
     var currentHourTemp: Int = 0
     dailyForecast[0]?.let {
         todayMaxTemp = it[0].maxTemperature
         todayMinTemp = it[0].minTemperature
     }
     val calendar = Calendar.getInstance()
-
     val localTime = LocalTime.now()
     val time: Int = if (calendar.get(Calendar.MINUTE) < 30) localTime.hour else localTime.hour + 1
-    val currentHourWeather = hourlyForecast[0]!!.firstOrNull() { hourlyForecast ->
-        hourlyForecast.currentDate.hour == time
+    val currentHourWeather = hourlyForecast[0]!!.firstOrNull() { hourly ->
+        hourly.currentDate.hour == time
     }
     currentHourTemp = currentHourWeather!!.currentTemp
     currentHourWeatherType = currentHourWeather.weatherType
 
     return WeatherComponents(
-        dailyForecast = dailyForecast, hourlyForecast = hourlyForecast,
+        dailyForecast = dailyForecast, hourlyForecast = toHourlyForecastList(),
         mainWeatherInfo = MainWeatherInfo(
             todayMaxTemp,
             todayMinTemp,
@@ -100,6 +95,28 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
             currentHourTemp
         )
     )
+}
+
+fun WeatherResponse.toHourlyForecastList(): ArrayList<HourlyForecast> {
+    val hourlyForecast = this.toHourlyForecast()
+    val todayHourly = hourlyForecast[0]
+    val nextDayHourly: List<HourlyForecast>?
+    val calendar = Calendar.getInstance()
+    val localTime = LocalTime.now()
+    val time: Int = if (calendar.get(Calendar.MINUTE) < 30)
+        localTime.hour else localTime.hour + 1
+    return if (time > 0) {
+        val resultHourly: ArrayList<HourlyForecast> = ArrayList()
+        nextDayHourly = hourlyForecast[1]?.dropLast(24 - time)
+        val todayHourlyWithDropElements = todayHourly?.drop(time)
+        Stream.of(todayHourlyWithDropElements, nextDayHourly)
+            .forEach { item -> resultHourly.addAll(item as Collection<HourlyForecast>) }
+
+        resultHourly
+    } else {
+        todayHourly as ArrayList<HourlyForecast>
+    }
+
 }
 
 

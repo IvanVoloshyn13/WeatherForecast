@@ -11,6 +11,7 @@ import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
+import com.example.data.location.checkLocationPermission
 import com.example.weatherforecast.connectivity.ConnectivityNetworkObserver
 import com.example.weatherforecast.connectivity.ConnectivityStatus
 import com.example.weatherforecast.connectivity.GpsStatus
@@ -27,7 +28,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusListener,
+class MainActivity : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatusListener,
     UpdateConnectivityStatus {
     private val binding by lazy { ActivityMainBinding.inflate(layoutInflater) }
     private lateinit var gpsStatusBroadcastReceiver: GpsStatusBroadcastReceiver
@@ -37,10 +38,9 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d("PAUSE", "CREATE")
         setContentView(binding.root)
-        if (!checkPermission()) {
-            requestPermission()
+        if (!checkLocationPermission()) {
+            requestLocationPermission()
         }
         gpsStatusBroadcastReceiver = GpsStatusBroadcastReceiver(
             this as GpsStatusBroadcastReceiver.GpsStatusListener,
@@ -52,8 +52,6 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
             val gpsStatus = checkGpsStatus()
             receiveGpsStatus(gpsStatus)
         }
-
-
     }
 
 
@@ -79,9 +77,12 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 
     override fun onStart() {
         super.onStart()
-        Log.d("PAUSE", "START")
         val filter = IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION)
         registerReceiver(gpsStatusBroadcastReceiver, filter)
+    }
+
+    override fun onResume() {
+        super.onResume()
         scope.launch {
             connectivityNetworkObserver.observe().collectLatest { network ->
                 networkStatus.update {
@@ -91,22 +92,14 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        Log.d("PAUSE", "RESUME")
-
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         outState.putSerializable(GPS_STATUS_KEY, _gpsStatus)
-        Log.d("PAUSE", "SAVEINSTANCE")
     }
 
     @Suppress("DEPRECATION")
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        Log.d("PAUSE", "RESTORE")
         if (Build.VERSION.SDK_INT >= VERSION_CODES.TIRAMISU) {
             val gpsStatus =
                 savedInstanceState.getSerializable(GPS_STATUS_KEY, GpsStatus::class.java)
@@ -123,8 +116,6 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 
     override fun onPause() {
         super.onPause()
-        Log.d("PAUSE", "OnPause")
-
         unregisterReceiver(gpsStatusBroadcastReceiver)
         scope.launch {
             networkStatus.update {
@@ -165,7 +156,7 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
         const val request_code = 201
     }
 
-    fun requestPermission() {
+    private fun requestLocationPermission() {
         ActivityCompat.requestPermissions(
             this,
             arrayOf(
@@ -179,16 +170,6 @@ class MainActivity() : AppCompatActivity(), GpsStatusBroadcastReceiver.GpsStatus
 
 }
 
-fun AppCompatActivity.checkPermission(): Boolean {
-    val hasPermission = (ActivityCompat.checkSelfPermission(
-        this,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED) && (ActivityCompat.checkSelfPermission(
-        this,
-        Manifest.permission.ACCESS_FINE_LOCATION
-    ) == PackageManager.PERMISSION_GRANTED)
-    return hasPermission
-}
 
 
 

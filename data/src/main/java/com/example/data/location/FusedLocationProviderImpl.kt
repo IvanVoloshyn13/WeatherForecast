@@ -7,7 +7,6 @@ import android.content.pm.PackageManager
 import android.location.Geocoder
 import android.location.LocationManager
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.example.domain.location.FusedLocationProvider
@@ -26,7 +25,7 @@ class FusedLocationProviderImpl @Inject constructor(
     private val fusedLocationProviderClient: FusedLocationProviderClient,
     @ApplicationContext val context: Context
 
-) : FusedLocationProvider{
+) : FusedLocationProvider {
     @OptIn(ExperimentalCoroutinesApi::class)
     @RequiresApi(Build.VERSION_CODES.TIRAMISU)
     override suspend fun getCurrentUserLocation(
@@ -34,13 +33,7 @@ class FusedLocationProviderImpl @Inject constructor(
 
         val locationManager = context.getSystemService(Context.LOCATION_SERVICE) as LocationManager
 
-        val hasPermission = (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED) && (ActivityCompat.checkSelfPermission(
-            context,
-            Manifest.permission.ACCESS_FINE_LOCATION
-        ) == PackageManager.PERMISSION_GRANTED)
+        val hasPermission = context.checkLocationPermission()
 
         val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
 
@@ -114,5 +107,15 @@ class FusedLocationProviderImpl @Inject constructor(
     }
 
 
+}
 
+fun Context.checkLocationPermission(): Boolean {
+    val hasPermission = (ActivityCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED) && (ActivityCompat.checkSelfPermission(
+        this,
+        Manifest.permission.ACCESS_FINE_LOCATION
+    ) == PackageManager.PERMISSION_GRANTED)
+    return hasPermission
 }
