@@ -9,7 +9,7 @@ data class MainScreenState(
     val location: String,
     val mainWeatherInfo: MainWeatherInfo,
     val hourlyForecast: ArrayList<HourlyForecast>? = null,
-    val dailyForecast: List<DailyForecast>? = null,
+    val dailyForecast: ArrayList<DailyForecast>? = null,
     val time: String,
 
 //    val networkStatus: NetworkObserver.NetworkStatus
