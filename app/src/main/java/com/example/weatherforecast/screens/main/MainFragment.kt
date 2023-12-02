@@ -120,6 +120,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         }
     }
 
+
     private fun observeConnectivityStatus() {
       if (activity != null && activity is UpdateConnectivityStatus ) {
          val fragmentActivity = activity as UpdateConnectivityStatus
@@ -127,9 +128,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 fragmentActivity.networkStatus.collectLatest {
                     observeGpsStatus(it.gpsStatus)
                     observeNetworkStatus(it.networkStatus)
-                    if(it.gpsStatus == GpsStatus.Available){
-                        viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
-                    }
                 }
             }
         }
@@ -144,6 +142,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             GpsStatus.Available -> {
                 binding.noGpsDialog.noGpsDialog.visibility = View.GONE
                 binding.mainGroup.visibility = View.VISIBLE
+                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
 
             }
         }
