@@ -1,4 +1,4 @@
-package com.example.network.models
+package com.example.network.models.weather
 
 data class Daily(
     val sunrise: List<String>,

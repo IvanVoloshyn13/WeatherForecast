@@ -1,8 +1,8 @@
 package com.example.network.di
 
-import com.example.network.apiServices.APIWeatherService
-import com.example.network.utils.OpenMeteo
-import com.example.network.utils.Weather
+import com.example.network.apiServices.ApiUnsplashService
+import com.example.network.utils.Unsplash
+import com.example.network.utils.UnsplashApi
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -14,22 +14,19 @@ import retrofit2.Retrofit
 import retrofit2.converter.moshi.MoshiConverterFactory
 import javax.inject.Singleton
 
-
 @Module
 @InstallIn(SingletonComponent::class)
-internal object WeatherModule {
-
+class UnsplashModule {
 
     @Provides
     @Singleton
-    @Weather
+    @UnsplashApi
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
         okHttpClient: OkHttpClient
     ): Retrofit {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
-        return Retrofit.Builder()
-            .baseUrl(OpenMeteo.OPEN_METEO_BASE_URL)
+        return Retrofit.Builder().baseUrl(Unsplash.UNSPLASH_BASE_API)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
@@ -38,8 +35,7 @@ internal object WeatherModule {
 
     @Provides
     @Singleton
-    fun provideWeatherService(@Weather retrofit: Retrofit): APIWeatherService =
-        retrofit.create(APIWeatherService::class.java)
-
-
+    @UnsplashApi
+    fun provideUnsplashService(@UnsplashApi  retrofit: Retrofit): ApiUnsplashService =
+        retrofit.create(ApiUnsplashService::class.java)
 }

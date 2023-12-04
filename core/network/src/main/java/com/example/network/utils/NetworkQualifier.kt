@@ -10,3 +10,7 @@ annotation class GoogleMaps
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
 annotation class Weather
+
+@Qualifier
+@Retention(AnnotationRetention.RUNTIME)
+annotation class UnsplashApi

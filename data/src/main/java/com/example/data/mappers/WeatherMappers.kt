@@ -6,7 +6,7 @@ import com.example.domain.models.weather.HourlyForecast
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.models.weather.WeatherType
-import com.example.network.models.WeatherResponse
+import com.example.network.models.weather.WeatherResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
