@@ -9,6 +9,7 @@ import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
+import com.example.domain.usecase.mainscreen.GetUnsplashImageByCityName
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
@@ -34,6 +35,7 @@ class MainViewModel @Inject constructor(
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
     private val getLocationTimeUseCase: GetLocationTimeUseCase,
     private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase,
+    private val getUnsplashImageByCityName: GetUnsplashImageByCityName
 
 ) : ViewModel() {
 
@@ -56,7 +58,7 @@ class MainViewModel @Inject constructor(
             _location,
             _time,
 
-        ) { weather, location, time,->
+            ) { weather, location, time ->
             _mainScreenState.update { state ->
                 state?.copy(
                     location = location.city,
@@ -74,7 +76,7 @@ class MainViewModel @Inject constructor(
     fun setEvent(event: MainScreenEvents) {
         when (event) {
             MainScreenEvents.GetWeatherByCurrentLocation -> {
-              initMainScreen()
+                initMainScreen()
 
             }
         }
@@ -112,6 +114,11 @@ class MainViewModel @Inject constructor(
                                 currentUserLocation.longitude
                             )
                         }
+
+                        async {
+                            val image = getUnsplashImageByCityName.invoke(currentUserLocation.city)
+                            Log.d("CITY", image.data?.cityImage.toString())
+                        }
                     }
                 }
 
@@ -125,7 +132,6 @@ class MainViewModel @Inject constructor(
             }
         }
     }
-
 
 
     private suspend fun getWeatherByLocation(latitude: Double, longitude: Double) {
