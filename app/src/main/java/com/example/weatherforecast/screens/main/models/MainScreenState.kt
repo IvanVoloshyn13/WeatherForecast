@@ -1,6 +1,7 @@
 package com.example.weatherforecast.screens.main.models
 
 
+import com.example.domain.models.unsplash.CityImage
 import com.example.domain.models.weather.DailyForecast
 import com.example.domain.models.weather.HourlyForecast
 import com.example.domain.models.weather.MainWeatherInfo
@@ -11,6 +12,7 @@ data class MainScreenState(
     val hourlyForecast: ArrayList<HourlyForecast>? = null,
     val dailyForecast: ArrayList<DailyForecast>? = null,
     val time: String,
+    val cityImage: CityImage?=null
 
 //    val networkStatus: NetworkObserver.NetworkStatus
 
@@ -20,7 +22,7 @@ data class MainScreenState(
         val Default = MainScreenState(
             location = "",
             mainWeatherInfo = MainWeatherInfo.Default,
-            time = "",
+            time = ""
 
 //            networkStatus = NetworkObserver.NetworkStatus.Available
         )

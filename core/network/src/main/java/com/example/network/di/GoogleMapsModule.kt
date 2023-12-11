@@ -2,7 +2,7 @@ package com.example.network.di
 
 import com.example.network.apiServices.ApiGoogleTimezoneService
 import com.example.network.utils.Google
-import com.example.network.utils.GoogleMaps
+import com.example.network.utils.GoogleMapsApi
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -20,13 +20,13 @@ class GoogleMapsModule {
 
     @Singleton
     @Provides
-    @GoogleMaps
+    @GoogleMapsApi
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
         okHttpClient: OkHttpClient
     ): Retrofit {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
-        return Retrofit.Builder().baseUrl(Google.GOOGLE_TIMEZONE_BASE_URL)
+        return Retrofit.Builder().baseUrl(Google.TIMEZONE_BASE_URL)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
@@ -35,6 +35,7 @@ class GoogleMapsModule {
 
     @Provides
     @Singleton
-    fun provideGoogleService(@GoogleMaps retrofit: Retrofit) =
+    @GoogleMapsApi
+    fun provideGoogleService(@GoogleMapsApi retrofit: Retrofit) =
         retrofit.create(ApiGoogleTimezoneService::class.java)
 }

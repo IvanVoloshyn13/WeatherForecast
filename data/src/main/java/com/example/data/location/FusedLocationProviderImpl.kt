@@ -16,6 +16,7 @@ import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.suspendCancellableCoroutine
+import okhttp3.internal.wait
 import java.util.Locale
 import javax.inject.Inject
 import kotlin.coroutines.resume
@@ -60,18 +61,23 @@ class FusedLocationProviderImpl @Inject constructor(
                         geocoder.getFromLocation(
                             latitude,
                             longitude,
-                            1,
-                            Geocoder.GeocodeListener {
-                                if (it.size > 0) {
-                                    currentUserLocation = CurrentUserLocation(
-                                        latitude = it[0].latitude,
-                                        longitude = it[0].longitude,
-                                        city = it[0].featureName,
-                                        timeZoneID = ""
-                                    )
-                                }
+                            1
+                        ) {
+                            if (it.size > 0) {
+                                currentUserLocation = CurrentUserLocation(
+                                    latitude = it[0].latitude,
+                                    longitude = it[0].longitude,
+                                    city = it[0].locality,
+                                    timeZoneID = ""
+                                )
 
-                            })
+                                continuation.resume(Resource.Success(data = currentUserLocation)) {exception->
+                                    continuation.resumeWithException(exception)
+                                }
+                            }
+
+                        }
+
 
                     } else {
                         @Suppress("DEPRECATION")
@@ -83,13 +89,16 @@ class FusedLocationProviderImpl @Inject constructor(
                                 city = address[0].locality,
                                 timeZoneID = ""
                             )
+
+                            continuation.resume(Resource.Success(data = currentUserLocation)) {
+                                continuation.resumeWithException(it)
+                            }
                         }
 
                     }
-                    continuation.resume(Resource.Success(data = currentUserLocation)) {
-                        continuation.resumeWithException(it)
+
                     }
-                }
+
 
             }
                 .addOnCanceledListener {

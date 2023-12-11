@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.location.CurrentUserLocation
+import com.example.domain.models.unsplash.CityImage
 import com.example.domain.models.weather.MainWeatherInfo
 import com.example.domain.models.weather.WeatherComponents
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
@@ -48,6 +49,7 @@ class MainViewModel @Inject constructor(
     private val _weather = MutableStateFlow<WeatherComponents?>(null)
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
     private val _time = MutableStateFlow<String?>("0:00")
+    private val _cityImage = MutableStateFlow<CityImage?>(value = null)
     private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
     val mainScreenState = _mainScreenState.asStateFlow()
 
@@ -57,8 +59,8 @@ class MainViewModel @Inject constructor(
             _weather,
             _location,
             _time,
-
-            ) { weather, location, time ->
+            _cityImage
+        ) { weather, location, time, cityImage ->
             _mainScreenState.update { state ->
                 state?.copy(
                     location = location.city,
@@ -66,6 +68,7 @@ class MainViewModel @Inject constructor(
                     hourlyForecast = weather?.hourlyForecast,
                     dailyForecast = weather?.dailyForecast,
                     time = time ?: "",
+                    cityImage = cityImage
 //                    networkStatus = networkStatus
                 )
             }
@@ -77,7 +80,6 @@ class MainViewModel @Inject constructor(
         when (event) {
             MainScreenEvents.GetWeatherByCurrentLocation -> {
                 initMainScreen()
-
             }
         }
     }
@@ -117,7 +119,15 @@ class MainViewModel @Inject constructor(
 
                         async {
                             val image = getUnsplashImageByCityName.invoke(currentUserLocation.city)
-                            Log.d("CITY", image.data?.cityImage.toString())
+                            when (image) {
+                                is Resource.Success -> {
+                                    image.data?.let {
+                                        _cityImage.value = it
+                                    }
+                                }
+                                is Resource.Error -> {}
+                                is Resource.Loading -> {}
+                            }
                         }
                     }
                 }
@@ -168,7 +178,7 @@ class MainViewModel @Inject constructor(
     }
 
 
-    fun stopTimeObserve() {
+  fun stopTimeObserve() {
         locationTimeJob?.cancel()
     }
 

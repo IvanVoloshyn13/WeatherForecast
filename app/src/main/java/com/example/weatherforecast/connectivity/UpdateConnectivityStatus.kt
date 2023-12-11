@@ -5,5 +5,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 
 interface UpdateConnectivityStatus {
 
-    val networkStatus: MutableStateFlow<ConnectivityStatus>
+    val gpsStatus: MutableSharedFlow<GpsStatus>
+    val networkStatus: MutableSharedFlow<NetworkStatus>
 }
