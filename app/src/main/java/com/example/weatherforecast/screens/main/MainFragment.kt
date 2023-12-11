@@ -20,8 +20,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.weatherforecast.GpsStatus
 import com.example.weatherforecast.R
-import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
@@ -29,7 +29,6 @@ import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -154,7 +153,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 }
 
             }
-            val gpsJob = viewLifecycleOwner.lifecycleScope.launch() {
+            val gpsJob = viewLifecycleOwner.lifecycleScope.launch {
                 fragmentActivity.gpsStatus.collectLatest {
                     observeGpsStatus(it)
                 }

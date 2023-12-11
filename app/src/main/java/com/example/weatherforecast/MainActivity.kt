@@ -1,7 +1,9 @@
 package com.example.weatherforecast
 
 import android.Manifest
+import android.content.BroadcastReceiver
 import android.content.Context
+import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
 import android.location.LocationManager
@@ -11,11 +13,8 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.data.location.checkLocationPermission
 import com.example.weatherforecast.connectivity.ConnectivityNetworkObserver
-import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
-import com.example.weatherforecast.connectivity.registerReceiverAsFlow
-import com.example.weatherforecast.connectivity.toGpsStatus
 import com.example.weatherforecast.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableJob
@@ -35,13 +34,16 @@ class MainActivity : AppCompatActivity(),
     private lateinit var scope: CoroutineScope
     private lateinit var networkJob: Job
     private var initialGpsStatusJob: Job? = null
+    private val locationManager: LocationManager by lazy {
+        getSystemService(Context.LOCATION_SERVICE) as LocationManager
+    }
 
 
     override val gpsStatus: MutableSharedFlow<GpsStatus> by lazy {
         MutableSharedFlow(
             replay = 0,
-            onBufferOverflow = BufferOverflow.SUSPEND,
-            extraBufferCapacity = 0
+            onBufferOverflow = BufferOverflow.DROP_LATEST,
+            extraBufferCapacity = 1
         )
     }
 
@@ -51,6 +53,13 @@ class MainActivity : AppCompatActivity(),
             onBufferOverflow = BufferOverflow.SUSPEND,
             extraBufferCapacity = 0
         )
+    }
+
+    private val receiver = object : BroadcastReceiver() {
+        override fun onReceive(context: Context, intent: Intent) {
+            val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
+                gpsStatus.tryEmit(isGpsEnabled.toGpsStatus())
+        }
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -64,7 +73,6 @@ class MainActivity : AppCompatActivity(),
         }
 
         if (savedInstanceState == null) {
-            val locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
             val isEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
             initialGpsStatusJob = Job()
             scope.launch(initialGpsStatusJob as CompletableJob) {
@@ -100,21 +108,10 @@ class MainActivity : AppCompatActivity(),
         initialGpsStatusJob?.invokeOnCompletion {
             initialGpsStatusJob?.cancel()
         }
+        registerReceiver(receiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
         networkJob = scope.launch() {
             connectivityNetworkObserver.observe().collectLatest { network ->
                 networkStatus.emit(network)
-            }
-        }
-
-        val gpsStatusFlow =
-            registerReceiverAsFlow(
-                this,
-                IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION),
-                scope
-            )
-        scope.launch {
-            gpsStatusFlow.collectLatest {
-                gpsStatus.emit(it)
             }
         }
     }
@@ -122,6 +119,7 @@ class MainActivity : AppCompatActivity(),
     override fun onStop() {
         super.onStop()
         networkJob.cancel()
+
     }
 
     private fun requestLocationPermission() {
@@ -140,6 +138,21 @@ class MainActivity : AppCompatActivity(),
         const val request_code = 201
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(receiver)
+    }
+}
+
+fun Boolean.toGpsStatus(): GpsStatus {
+    return when (this) {
+        true -> GpsStatus.Available
+        false -> GpsStatus.Unavailable
+    }
+}
+
+enum class GpsStatus {
+    Available, Unavailable
 }
 
 
