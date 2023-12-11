@@ -26,7 +26,8 @@ class UnsplashModule {
         okHttpClient: OkHttpClient
     ): Retrofit {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
-        return Retrofit.Builder().baseUrl(Unsplash.UNSPLASH_BASE_API)
+        return Retrofit.Builder()
+            .baseUrl(Unsplash.BASE_API)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)

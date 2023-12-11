@@ -4,12 +4,12 @@ import javax.inject.Qualifier
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
-annotation class GoogleMaps
+annotation class GoogleMapsApi
 
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)
-annotation class Weather
+annotation class OpenMeteoApi
 
 @Qualifier
 @Retention(AnnotationRetention.RUNTIME)

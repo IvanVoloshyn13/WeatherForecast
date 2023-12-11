@@ -14,5 +14,6 @@
     <string name="location_disabled">Location servers are disabled</string>
     <string name="enabled_location">Enabled location</string>
     <string name="no_network">Network is not available</string>
+    <string name="please_enter_city_name">Please enter city name</string>
 
 </resources>

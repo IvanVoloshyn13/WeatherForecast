@@ -2,7 +2,7 @@ package com.example.network.di
 
 import com.example.network.apiServices.APIWeatherService
 import com.example.network.utils.OpenMeteo
-import com.example.network.utils.Weather
+import com.example.network.utils.OpenMeteoApi
 import com.slack.eithernet.ApiResultCallAdapterFactory
 import dagger.Module
 import dagger.Provides
@@ -22,14 +22,14 @@ internal object WeatherModule {
 
     @Provides
     @Singleton
-    @Weather
+    @OpenMeteoApi
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
         okHttpClient: OkHttpClient
     ): Retrofit {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
         return Retrofit.Builder()
-            .baseUrl(OpenMeteo.OPEN_METEO_BASE_URL)
+            .baseUrl(OpenMeteo.BASE_URL)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
@@ -38,7 +38,7 @@ internal object WeatherModule {
 
     @Provides
     @Singleton
-    fun provideWeatherService(@Weather retrofit: Retrofit): APIWeatherService =
+    fun provideWeatherService(@OpenMeteoApi retrofit: Retrofit): APIWeatherService =
         retrofit.create(APIWeatherService::class.java)
 
 

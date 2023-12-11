@@ -17,6 +17,7 @@
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
         <item name="android:buttonStyle">@style/Widget.WeatherForecast.Button</item>
+        <item name="android:textColorHint">@color/light_gray</item>
 
     </style>
 

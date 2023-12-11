@@ -1,23 +1,23 @@
 package com.example.weatherforecast.connectivity
 
+
 import android.content.Context
 import android.net.ConnectivityManager
 import android.net.Network
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
-class ConnectivityNetworkObserver @Inject constructor(
-    @ApplicationContext context: Context
-)  {
+class ConnectivityNetworkObserver(
+    var context: Context
+) {
+
 
 
     private val connectivityManager =
-        context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+                context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
 
     fun observe(): Flow<NetworkStatus> {
@@ -36,14 +36,13 @@ class ConnectivityNetworkObserver @Inject constructor(
                         trySend(NetworkStatus.Available)
                     }
                 }
+
                 override fun onLost(network: Network) {
                     super.onLost(network)
                     launch {
                         trySend(NetworkStatus.Lost)
                     }
                 }
-
-
             }
             connectivityManager.registerDefaultNetworkCallback(callback)
             awaitClose {
@@ -51,10 +50,10 @@ class ConnectivityNetworkObserver @Inject constructor(
             }
 
         }.distinctUntilChanged()
-
     }
 }
 
+
 enum class NetworkStatus {
-    Available,  Lost
+    Available, Lost
 }

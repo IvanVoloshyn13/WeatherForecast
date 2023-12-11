@@ -1,23 +1,25 @@
 package com.example.weatherforecast.screens.main
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.example.weatherforecast.MainActivity
+import coil.load
 import com.example.weatherforecast.R
 import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.NetworkStatus
@@ -26,9 +28,8 @@ import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -45,7 +46,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
     private lateinit var menuHost: MenuHost
     private lateinit var drawerLayout: DrawerLayout
     private lateinit var menu: Menu
-
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
@@ -73,10 +73,9 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         super.onViewCreated(view, savedInstanceState)
         val navigationView = binding.mainNavView
         navigationView.setNavigationItemSelectedListener(this)
+
         initHourlyRecycler()
         initDailyRecycler()
-        observeConnectivityStatus()
-
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
 //
@@ -89,10 +88,9 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     override fun onStart() {
         super.onStart()
-
+        observeConnectivityStatus()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
-
                 state?.let {
                     binding.toolbar.tvToolbarTitle.text = it.location
                     binding.toolbar.tvCurrentTime.text = it.time
@@ -114,62 +112,24 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                     if (it.dailyForecast != null) {
                         dailyAdapter.submitList(it.dailyForecast)
                     }
-
-                }
-            }
-        }
-    }
-
-
-    private fun observeConnectivityStatus() {
-      if (activity != null && activity is UpdateConnectivityStatus ) {
-         val fragmentActivity = activity as UpdateConnectivityStatus
-            viewLifecycleOwner.lifecycleScope.launch {
-                fragmentActivity.networkStatus.collectLatest {
-                    observeGpsStatus(it.gpsStatus)
-                    observeNetworkStatus(it.networkStatus)
-                }
-            }
-        }
-    }
-
-    private fun observeGpsStatus(status: GpsStatus) {
-        when (status) {
-            GpsStatus.Unavailable -> {
-                binding.noGpsDialog.noGpsDialog.visibility = View.VISIBLE
-                binding.mainGroup.visibility = View.GONE
-            }
-            GpsStatus.Available -> {
-                binding.noGpsDialog.noGpsDialog.visibility = View.GONE
-                binding.mainGroup.visibility = View.VISIBLE
-                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
-
-            }
-        }
-    }
-
-
-    private fun observeNetworkStatus(network: NetworkStatus?) {
-        if(isResumed) {
-            if (network != null) {
-                when (network) {
-                    NetworkStatus.Available -> {
+                    if (it.cityImage != null) {
+                        binding.ivCityImage.apply {
+                            this.scaleType = ImageView.ScaleType.FIT_XY
+                        }.also { view ->
+                            view.load(it.cityImage.cityImage)
+                            // Glide.with(view).load(it.cityImage.cityImage).into(view)
+                        }
 
                     }
 
-                    NetworkStatus.Lost -> {
-                        Toast.makeText(
-                            this@MainFragment.requireContext(),
-                            R.string.no_network,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-
                 }
             }
         }
-    }
 
+        binding.toolbar.bttAddNewCity.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+        }
+    }
 
     override fun onResume() {
         super.onResume()
@@ -182,6 +142,63 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         super.onPause()
         viewModel.stopTimeObserve()
 
+    }
+
+
+    private fun observeConnectivityStatus() {
+        if (activity != null && activity is UpdateConnectivityStatus) {
+            val fragmentActivity = activity as UpdateConnectivityStatus
+            val networkJob = viewLifecycleOwner.lifecycleScope.launch(start = CoroutineStart.LAZY) {
+                fragmentActivity.networkStatus.collectLatest {
+                    observeNetworkStatus(it)
+                }
+
+            }
+            val gpsJob = viewLifecycleOwner.lifecycleScope.launch() {
+                fragmentActivity.gpsStatus.collectLatest {
+                    observeGpsStatus(it)
+                }
+            }
+
+            if (requireActivity().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                networkJob.start()
+                gpsJob.start()
+            }
+        }
+    }
+
+
+    private fun observeGpsStatus(status: GpsStatus) {
+        when (status) {
+            GpsStatus.Unavailable -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.VISIBLE
+                binding.mainGroup.visibility = View.GONE
+            }
+
+            GpsStatus.Available -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.GONE
+                binding.mainGroup.visibility = View.VISIBLE
+                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
+            }
+        }
+    }
+
+
+    private fun observeNetworkStatus(network: NetworkStatus) {
+        if (isResumed) {
+            when (network) {
+                NetworkStatus.Available -> {
+                }
+
+                NetworkStatus.Lost -> {
+                    Toast.makeText(
+                        this@MainFragment.requireContext(),
+                        R.string.no_network,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
     }
 
 
