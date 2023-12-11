@@ -98,23 +98,23 @@ class MainViewModel @Inject constructor(
                                 longitude = currentUserLocation.longitude,
                                 timeZoneID = currentUserLocation.timeZoneID
                             )
+
+                        getWeatherByLocation(
+                            currentUserLocation.latitude,
+                            currentUserLocation.longitude
+                        )
+
                         val timezone = async {
                             getCurrentUserLocationTimeZoneUseCase.invoke(
                                 currentUserLocation.latitude,
                                 currentUserLocation.longitude
                             )
+                        }
 
-                        }.await()
-                        timezone.data?.let {
+                        timezone.await().data?.let {
                             if (it.isNotEmpty()) {
                                 getLocationTime(it)
                             }
-                        }
-                        async {
-                            getWeatherByLocation(
-                                currentUserLocation.latitude,
-                                currentUserLocation.longitude
-                            )
                         }
 
                         async {
