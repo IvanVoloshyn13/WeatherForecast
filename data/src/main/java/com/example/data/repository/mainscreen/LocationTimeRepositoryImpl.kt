@@ -1,7 +1,6 @@
-package com.example.data.repository
+package com.example.data.repository.mainscreen
 
-import android.util.Log
-import com.example.domain.repository.LocationTimeRepository
+import com.example.domain.repository.main.LocationTimeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow

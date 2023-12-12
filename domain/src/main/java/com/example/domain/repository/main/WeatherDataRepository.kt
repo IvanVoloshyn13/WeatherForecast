@@ -1,6 +1,6 @@
-package com.example.domain.repository
+package com.example.domain.repository.main
 
-import com.example.domain.models.weather.WeatherComponents
+import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.utils.Resource
 
 interface WeatherDataRepository {

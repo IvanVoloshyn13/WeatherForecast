@@ -1,6 +1,6 @@
 package com.example.domain.usecase.mainscreen
 
-import com.example.domain.repository.LocationTimeRepository
+import com.example.domain.repository.main.LocationTimeRepository
 import kotlinx.coroutines.flow.Flow
 
 import javax.inject.Inject

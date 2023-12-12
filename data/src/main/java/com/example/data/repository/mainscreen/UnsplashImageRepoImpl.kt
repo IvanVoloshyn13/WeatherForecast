@@ -1,12 +1,12 @@
-package com.example.data.repository
+package com.example.data.repository.mainscreen
 
 import com.example.data.di.IoDispatcher
-import com.example.domain.models.unsplash.CityImage
-import com.example.domain.repository.UnsplashImageRepository
+import com.example.domain.models.mainscreen.unsplash.CityImage
+import com.example.domain.repository.main.UnsplashImageRepository
 import com.example.domain.utils.Resource
 import com.example.http.utils.ApiResult
 import com.example.http.utils.executeApiCall
-import com.example.network.apiServices.ApiUnsplashService
+import com.example.network.apiServices.mainscreen.ApiUnsplashService
 import com.example.network.models.unsplash.UnsplashApiResponse
 import com.example.network.utils.UnsplashApi
 import kotlinx.coroutines.CoroutineDispatcher
@@ -29,7 +29,7 @@ class UnsplashImageRepoImpl @Inject constructor(
             }
 
             is ApiResult.Error -> {
-                Resource.Error(data = null, message = "Something goes wrong. Try again")
+                Resource.Error( message = "Something goes wrong. Try again")
             }
         }
     }

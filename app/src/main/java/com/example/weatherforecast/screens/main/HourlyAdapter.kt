@@ -8,7 +8,7 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
-import com.example.domain.models.weather.HourlyForecast
+import com.example.domain.models.mainscreen.weather.HourlyForecast
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.ItemHourlyForecastBinding
 

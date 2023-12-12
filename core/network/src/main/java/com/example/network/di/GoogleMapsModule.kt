@@ -1,6 +1,6 @@
 package com.example.network.di
 
-import com.example.network.apiServices.ApiGoogleTimezoneService
+import com.example.network.apiServices.mainscreen.ApiGoogleTimezoneService
 import com.example.network.utils.Google
 import com.example.network.utils.GoogleMapsApi
 import com.slack.eithernet.ApiResultCallAdapterFactory

@@ -1,11 +1,11 @@
 package com.example.data.mappers
 
 import android.annotation.SuppressLint
-import com.example.domain.models.weather.DailyForecast
-import com.example.domain.models.weather.HourlyForecast
-import com.example.domain.models.weather.MainWeatherInfo
-import com.example.domain.models.weather.WeatherComponents
-import com.example.domain.models.weather.WeatherType
+import com.example.domain.models.mainscreen.weather.DailyForecast
+import com.example.domain.models.mainscreen.weather.HourlyForecast
+import com.example.domain.models.mainscreen.weather.MainWeatherInfo
+import com.example.domain.models.mainscreen.weather.WeatherComponents
+import com.example.domain.models.mainscreen.weather.WeatherType
 import com.example.network.models.weather.WeatherResponse
 import java.time.LocalDate
 import java.time.LocalDateTime

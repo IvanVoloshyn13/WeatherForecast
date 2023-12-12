@@ -1,4 +1,4 @@
-package com.example.domain.models.weather
+package com.example.domain.models.mainscreen.weather
 
 data class WeatherComponents(
     val mainWeatherInfo: MainWeatherInfo,

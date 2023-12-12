@@ -3,10 +3,10 @@ package com.example.weatherforecast.screens.main
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.models.location.CurrentUserLocation
-import com.example.domain.models.unsplash.CityImage
-import com.example.domain.models.weather.MainWeatherInfo
-import com.example.domain.models.weather.WeatherComponents
+import com.example.domain.models.mainscreen.location.CurrentUserLocation
+import com.example.domain.models.mainscreen.unsplash.CityImage
+import com.example.domain.models.mainscreen.weather.MainWeatherInfo
+import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
@@ -17,7 +17,6 @@ import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -27,7 +26,6 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 @HiltViewModel
@@ -86,11 +84,10 @@ class MainViewModel @Inject constructor(
 
     fun initMainScreen() {
         viewModelScope.launch(exceptionHandler) {
-            val locationResource =
-                withContext(Dispatchers.IO) { currentUserLocationUseCase.invoke() }
+            val locationResource = async { currentUserLocationUseCase.invoke() }.await()
             when (locationResource) {
                 is Resource.Success -> {
-                    locationResource.data?.let { currentUserLocation ->
+                    locationResource.data.let { currentUserLocation ->
                         _location.value =
                             CurrentUserLocation(
                                 city = currentUserLocation.city,
@@ -111,10 +108,20 @@ class MainViewModel @Inject constructor(
                             )
                         }
 
-                        timezone.await().data?.let {
-                            if (it.isNotEmpty()) {
-                                getLocationTime(it)
+                        timezone.await().let {result->
+                            when (result) {
+                                is Resource.Success -> {
+                                    if (result.data.isNotEmpty()) {
+                                        getLocationTime(result.data)
+                                    }
+                                }
+
+                                is Resource.Error -> {}
+                                is Resource.Loading -> {
+
+                                }
                             }
+
                         }
 
                         async {
@@ -125,6 +132,7 @@ class MainViewModel @Inject constructor(
                                         _cityImage.value = it
                                     }
                                 }
+
                                 is Resource.Error -> {}
                                 is Resource.Loading -> {}
                             }
@@ -178,7 +186,7 @@ class MainViewModel @Inject constructor(
     }
 
 
-  fun stopTimeObserve() {
+    fun stopTimeObserve() {
         locationTimeJob?.cancel()
     }
 

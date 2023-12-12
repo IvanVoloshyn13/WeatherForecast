@@ -1,7 +1,7 @@
 package com.example.domain.usecase.mainscreen
 
 import com.example.domain.location.FusedLocationProvider
-import com.example.domain.models.location.CurrentUserLocation
+import com.example.domain.models.mainscreen.location.CurrentUserLocation
 import com.example.domain.utils.Resource
 import javax.inject.Inject
 

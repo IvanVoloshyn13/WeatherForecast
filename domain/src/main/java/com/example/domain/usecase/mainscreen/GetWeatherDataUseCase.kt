@@ -1,7 +1,7 @@
 package com.example.domain.usecase.mainscreen
 
-import com.example.domain.models.weather.WeatherComponents
-import com.example.domain.repository.WeatherDataRepository
+import com.example.domain.models.mainscreen.weather.WeatherComponents
+import com.example.domain.repository.main.WeatherDataRepository
 import com.example.domain.utils.Resource
 import javax.inject.Inject
 

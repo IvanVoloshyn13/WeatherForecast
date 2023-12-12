@@ -1,10 +1,10 @@
 package com.example.weatherforecast.screens.main.models
 
 
-import com.example.domain.models.unsplash.CityImage
-import com.example.domain.models.weather.DailyForecast
-import com.example.domain.models.weather.HourlyForecast
-import com.example.domain.models.weather.MainWeatherInfo
+import com.example.domain.models.mainscreen.unsplash.CityImage
+import com.example.domain.models.mainscreen.weather.DailyForecast
+import com.example.domain.models.mainscreen.weather.HourlyForecast
+import com.example.domain.models.mainscreen.weather.MainWeatherInfo
 
 data class MainScreenState(
     val location: String,
