@@ -1,6 +1,6 @@
 package com.example.network.di
 
-import com.example.network.apiServices.ApiUnsplashService
+import com.example.network.apiServices.mainscreen.ApiUnsplashService
 import com.example.network.utils.Unsplash
 import com.example.network.utils.UnsplashApi
 import com.slack.eithernet.ApiResultCallAdapterFactory

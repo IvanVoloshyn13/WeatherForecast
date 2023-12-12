@@ -10,7 +10,7 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import com.example.domain.location.FusedLocationProvider
-import com.example.domain.models.location.CurrentUserLocation
+import com.example.domain.models.mainscreen.location.CurrentUserLocation
 import com.example.domain.utils.Resource
 import com.google.android.gms.location.FusedLocationProviderClient
 import dagger.hilt.android.qualifiers.ApplicationContext

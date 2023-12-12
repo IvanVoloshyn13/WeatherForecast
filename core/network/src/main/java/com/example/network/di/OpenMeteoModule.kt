@@ -1,6 +1,7 @@
 package com.example.network.di
 
-import com.example.network.apiServices.APIWeatherService
+import com.example.network.apiServices.mainscreen.ApiWeatherService
+import com.example.network.apiServices.searchscreen.ApiSearchCityService
 import com.example.network.utils.OpenMeteo
 import com.example.network.utils.OpenMeteoApi
 import com.slack.eithernet.ApiResultCallAdapterFactory
@@ -17,7 +18,7 @@ import javax.inject.Singleton
 
 @Module
 @InstallIn(SingletonComponent::class)
-internal object WeatherModule {
+internal object OpenMeteoModule {
 
 
     @Provides
@@ -26,20 +27,24 @@ internal object WeatherModule {
     fun provideRetrofit(
         moshiConverterFactory: MoshiConverterFactory,
         okHttpClient: OkHttpClient
-    ): Retrofit {
+    ): Retrofit.Builder {
         val callFactory = Call.Factory { request -> okHttpClient.newCall(request) }
         return Retrofit.Builder()
-            .baseUrl(OpenMeteo.BASE_URL)
             .addConverterFactory(moshiConverterFactory)
             .addCallAdapterFactory(ApiResultCallAdapterFactory)
             .callFactory(callFactory)
-            .build()
+
     }
 
     @Provides
     @Singleton
-    fun provideWeatherService(@OpenMeteoApi retrofit: Retrofit): APIWeatherService =
-        retrofit.create(APIWeatherService::class.java)
+    fun provideWeatherService(@OpenMeteoApi retrofit: Retrofit.Builder): ApiWeatherService =
+        retrofit.baseUrl(OpenMeteo.BASE_URL).build().create(ApiWeatherService::class.java)
+
+    @Provides
+    @Singleton
+    fun provideSearchCityService(@OpenMeteoApi retrofit: Retrofit.Builder): ApiSearchCityService =
+        retrofit.baseUrl(OpenMeteo.SEARCH_URL).build().create(ApiSearchCityService::class.java)
 
 
 }

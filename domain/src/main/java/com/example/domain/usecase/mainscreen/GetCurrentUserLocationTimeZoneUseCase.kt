@@ -1,6 +1,6 @@
 package com.example.domain.usecase.mainscreen
 
-import com.example.domain.repository.UserLocationTimezone
+import com.example.domain.repository.main.UserLocationTimezone
 import com.example.domain.utils.Resource
 import javax.inject.Inject
 

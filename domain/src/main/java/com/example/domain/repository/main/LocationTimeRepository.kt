@@ -1,4 +1,4 @@
-package com.example.domain.repository
+package com.example.domain.repository.main
 
 import kotlinx.coroutines.flow.Flow
 import java.util.Locale

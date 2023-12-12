@@ -1,4 +1,4 @@
-package com.example.network.apiServices
+package com.example.network.apiServices.mainscreen
 
 import com.example.network.models.unsplash.UnsplashApiResponse
 import com.example.network.utils.Unsplash

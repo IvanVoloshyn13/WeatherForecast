@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
@@ -13,6 +14,7 @@ import com.example.weatherforecast.databinding.FragmentCitySearchBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
@@ -63,5 +65,26 @@ class CitySearchFragment : Fragment() {
                 return true
             }
         })
+        lifecycleScope.launch {
+            searchViewModel.cities.collectLatest {
+                if (it.isNotEmpty()) {
+                    Toast.makeText(
+                        this@CitySearchFragment.requireContext(),
+                        it[5].cityName,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                else{
+                    Toast.makeText(
+                        this@CitySearchFragment.requireContext(),
+                        "List is empty",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+            }
+        }
+
     }
+
+
 }

@@ -1,4 +1,4 @@
-package com.example.domain.models.location
+package com.example.domain.models.mainscreen.location
 
 data class CurrentUserLocation(
     val latitude: Double,

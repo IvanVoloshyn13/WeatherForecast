@@ -1,11 +1,11 @@
-package com.example.network.apiServices
+package com.example.network.apiServices.mainscreen
 
 import com.example.network.models.weather.WeatherResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
 
-interface APIWeatherService {
+interface ApiWeatherService {
 
     @GET(
         "v1/forecast?&hourly=temperature_2m," +

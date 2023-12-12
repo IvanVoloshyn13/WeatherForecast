@@ -1,13 +1,15 @@
 package com.example.data.di
 
-import com.example.data.repository.LocationTimeRepositoryImpl
-import com.example.data.repository.UnsplashImageRepoImpl
-import com.example.data.repository.UserLocationTimezoneRepositoryImpl
-import com.example.data.repository.WeatherDataRepositoryImpl
-import com.example.domain.repository.LocationTimeRepository
-import com.example.domain.repository.UnsplashImageRepository
-import com.example.domain.repository.UserLocationTimezone
-import com.example.domain.repository.WeatherDataRepository
+import com.example.data.repository.mainscreen.LocationTimeRepositoryImpl
+import com.example.data.repository.mainscreen.UnsplashImageRepoImpl
+import com.example.data.repository.mainscreen.UserLocationTimezoneRepositoryImpl
+import com.example.data.repository.mainscreen.WeatherDataRepositoryImpl
+import com.example.data.repository.searchscreen.SearchCityImpl
+import com.example.domain.repository.main.LocationTimeRepository
+import com.example.domain.repository.main.UnsplashImageRepository
+import com.example.domain.repository.main.UserLocationTimezone
+import com.example.domain.repository.main.WeatherDataRepository
+import com.example.domain.repository.search.SearchCity
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -27,5 +29,8 @@ interface RepositoryModule {
 
     @Binds
     fun provideUnsplashImageRepository(unsplashImageRepo: UnsplashImageRepoImpl): UnsplashImageRepository
+
+    @Binds
+    fun provideSearchCityRepository(searchCity: SearchCityImpl): SearchCity
 
 }

@@ -1,4 +1,4 @@
-package com.example.domain.models.unsplash
+package com.example.domain.models.mainscreen.unsplash
 
 typealias Image = String
 

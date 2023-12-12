@@ -78,6 +78,7 @@ class MainActivity : AppCompatActivity(),
             scope.launch(initialGpsStatusJob as CompletableJob) {
                 gpsStatus.emit(isEnabled.toGpsStatus())
             }
+
         }
     }
 
@@ -108,6 +109,7 @@ class MainActivity : AppCompatActivity(),
         initialGpsStatusJob?.invokeOnCompletion {
             initialGpsStatusJob?.cancel()
         }
+
         registerReceiver(receiver, IntentFilter(LocationManager.PROVIDERS_CHANGED_ACTION))
         networkJob = scope.launch() {
             connectivityNetworkObserver.observe().collectLatest { network ->
@@ -115,6 +117,10 @@ class MainActivity : AppCompatActivity(),
             }
         }
     }
+
+
+
+
 
     override fun onStop() {
         super.onStop()
