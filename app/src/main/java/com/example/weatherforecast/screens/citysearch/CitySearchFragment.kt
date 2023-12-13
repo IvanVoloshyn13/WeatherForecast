@@ -1,14 +1,16 @@
 package com.example.weatherforecast.screens.citysearch
 
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.fragment.app.Fragment
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentCitySearchBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -23,6 +25,18 @@ class CitySearchFragment : Fragment() {
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
     private val searchDelay: Long = 500
+    private lateinit var adapter: SearchedCitiesAdapter
+    private lateinit var onBackPressed: OnBackPressedCallback
+
+    override fun onAttach(context: Context) {
+        super.onAttach(context)
+        onBackPressed = object : OnBackPressedCallback(enabled = true) {
+            override fun handleOnBackPressed() {
+                onBackPressed()
+            }
+        }
+        requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressed)
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -34,11 +48,15 @@ class CitySearchFragment : Fragment() {
             setIconifiedByDefault(false)
             queryHint = getString(R.string.please_enter_city_name)
         }
+        adapter = SearchedCitiesAdapter()
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val recycler = binding.rvCity
+        recycler.adapter = adapter
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
@@ -67,22 +85,16 @@ class CitySearchFragment : Fragment() {
         })
         lifecycleScope.launch {
             searchViewModel.cities.collectLatest {
-                if (it.isNotEmpty()) {
-                    Toast.makeText(
-                        this@CitySearchFragment.requireContext(),
-                        it[5].cityName,
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
-                else{
-                    Toast.makeText(
-                        this@CitySearchFragment.requireContext(),
-                        "List is empty",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                }
+                adapter.submitList(it)
             }
         }
+
+
+    }
+
+    private fun onBackPressed() {
+        searchViewModel.search("")
+        findNavController().popBackStack()
 
     }
 

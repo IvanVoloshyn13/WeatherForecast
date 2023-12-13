@@ -1,5 +1,6 @@
 package com.example.weatherforecast.screens.citysearch
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.searchscreen.SearchedCity
@@ -30,15 +31,17 @@ class SearchViewModel @Inject constructor(
                         _cities.emit(list.data)
                     }
 
-                    is Resource.Error -> {}
-                    is Resource.Loading -> {}
+                    is Resource.Error -> {
+                        Log.d("CITY_ERROR", list.message.toString())
+                    }
+                        is Resource.Loading -> {}
 
+                    }
+                } else {
+                    _cities.emit(ArrayList())
                 }
-            } else {
-                _cities.emit(ArrayList())
             }
+
+
         }
-
-
     }
-}

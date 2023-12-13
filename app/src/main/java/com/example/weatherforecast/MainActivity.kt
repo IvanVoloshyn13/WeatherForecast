@@ -9,6 +9,7 @@ import android.content.pm.PackageManager
 import android.location.LocationManager
 import android.os.Bundle
 import android.util.Log
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.data.location.checkLocationPermission
@@ -58,9 +59,10 @@ class MainActivity : AppCompatActivity(),
     private val receiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             val isGpsEnabled = locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER)
-                gpsStatus.tryEmit(isGpsEnabled.toGpsStatus())
+            gpsStatus.tryEmit(isGpsEnabled.toGpsStatus())
         }
     }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -119,9 +121,6 @@ class MainActivity : AppCompatActivity(),
     }
 
 
-
-
-
     override fun onStop() {
         super.onStop()
         networkJob.cancel()
@@ -150,16 +149,17 @@ class MainActivity : AppCompatActivity(),
     }
 }
 
-fun Boolean.toGpsStatus(): GpsStatus {
-    return when (this) {
-        true -> GpsStatus.Available
-        false -> GpsStatus.Unavailable
-    }
-}
 
-enum class GpsStatus {
-    Available, Unavailable
-}
+    fun Boolean.toGpsStatus(): GpsStatus {
+        return when (this) {
+            true -> GpsStatus.Available
+            false -> GpsStatus.Unavailable
+        }
+    }
+
+    enum class GpsStatus {
+        Available, Unavailable
+    }
 
 
 
