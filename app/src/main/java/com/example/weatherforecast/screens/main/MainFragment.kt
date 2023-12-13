@@ -82,7 +82,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
 
-
     }
 
     override fun onStart() {
