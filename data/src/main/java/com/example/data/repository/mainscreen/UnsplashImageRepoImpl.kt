@@ -43,5 +43,5 @@ fun UnsplashApiResponse.toCityImage(): CityImage {
 }
 
 fun Int.toRandomNumber(): Int {
-    return Random.nextInt(0, this)
+    return  Random.nextInt(0, this)
 }

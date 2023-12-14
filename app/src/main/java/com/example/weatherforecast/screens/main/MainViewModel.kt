@@ -7,20 +7,25 @@ import com.example.domain.models.mainscreen.location.CurrentUserLocation
 import com.example.domain.models.mainscreen.unsplash.CityImage
 import com.example.domain.models.mainscreen.weather.MainWeatherInfo
 import com.example.domain.models.mainscreen.weather.WeatherComponents
+import com.example.domain.models.searchscreen.SearchedCity
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetUnsplashImageByCityName
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
+import com.example.weatherforecast.screens.main.models.GetWeather
+import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.launchIn
@@ -76,8 +81,14 @@ class MainViewModel @Inject constructor(
 
     fun setEvent(event: MainScreenEvents) {
         when (event) {
-            MainScreenEvents.GetWeatherByCurrentLocation -> {
+            GetWeatherByCurrentLocation -> {
                 initMainScreen()
+            }
+
+            is GetWeather -> {
+                getWeather(event.city)
+                viewModelScope.launch {
+                }
             }
         }
     }
@@ -108,11 +119,16 @@ class MainViewModel @Inject constructor(
                             )
                         }
 
-                        timezone.await().let {result->
+                        timezone.await().let { result ->
                             when (result) {
                                 is Resource.Success -> {
                                     if (result.data.isNotEmpty()) {
-                                        getLocationTime(result.data)
+                                        if (locationTimeJob != null) {
+                                            stopTimeObserve()
+                                            getLocationTime(result.data)
+                                        } else {
+                                            getLocationTime(result.data)
+                                        }
                                     }
                                 }
 
@@ -125,17 +141,7 @@ class MainViewModel @Inject constructor(
                         }
 
                         async {
-                            val image = getUnsplashImageByCityName.invoke(currentUserLocation.city)
-                            when (image) {
-                                is Resource.Success -> {
-                                    image.data?.let {
-                                        _cityImage.value = it
-                                    }
-                                }
-
-                                is Resource.Error -> {}
-                                is Resource.Loading -> {}
-                            }
+                            getCityImage(currentUserLocation.city)
                         }
                     }
                 }
@@ -148,6 +154,38 @@ class MainViewModel @Inject constructor(
                     TODO()
                 }
             }
+        }
+    }
+
+    private fun getWeather(city: SearchedCity) {
+        viewModelScope.launch {
+            val weather = async { getWeatherByLocation(city.latitude, city.longitude) }
+            _location.value =
+                CurrentUserLocation(
+                    city = city.cityName,
+                    latitude = city.latitude,
+                    longitude = city.longitude,
+                    timeZoneID = city.timezone
+                )
+            async { getCityImage(city.cityName) }
+            stopTimeObserve()
+            if (locationTimeJob?.isCompleted == true) {
+                getLocationTime(timeZoneId = city.timezone)
+            }
+        }
+    }
+
+    private suspend fun getCityImage(cityName: String) {
+        val image = getUnsplashImageByCityName.invoke(cityName)
+        when (image) {
+            is Resource.Success -> {
+                image.data?.let {
+                    _cityImage.value = it
+                }
+            }
+
+            is Resource.Error -> {}
+            is Resource.Loading -> {}
         }
     }
 
@@ -177,17 +215,17 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    fun getLocationTime(timeZoneId: String) {
+    private fun getLocationTime(timeZoneId: String) {
         locationTimeJob = viewModelScope.launch {
-            getLocationTimeUseCase.invoke(timeZoneId, true).collectLatest {
+            getLocationTimeUseCase.invoke(timeZoneId, true).cancellable().collectLatest {
                 _time.value = it
             }
         }
     }
 
 
-    fun stopTimeObserve() {
-        locationTimeJob?.cancel()
+    private suspend fun stopTimeObserve() {
+        locationTimeJob?.cancelAndJoin()
     }
 
 

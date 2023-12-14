@@ -4,6 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.searchscreen.SearchedCity
+import com.example.domain.usecase.searchscreen.SaveCityModelToLocalDatabaseUseCase
 import com.example.domain.usecase.searchscreen.SearchCityByNameUseCase
 import com.example.domain.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class SearchViewModel @Inject constructor(
-    private val searchCityByNameUseCase: SearchCityByNameUseCase
+    private val searchCityByNameUseCase: SearchCityByNameUseCase,
+    private val saveCityModelToLocalDatabaseUseCase: SaveCityModelToLocalDatabaseUseCase
 ) : ViewModel() {
 
     private val _cities: MutableStateFlow<ArrayList<SearchedCity>> =
@@ -34,14 +36,21 @@ class SearchViewModel @Inject constructor(
                     is Resource.Error -> {
                         Log.d("CITY_ERROR", list.message.toString())
                     }
-                        is Resource.Loading -> {}
 
-                    }
-                } else {
-                    _cities.emit(ArrayList())
+                    is Resource.Loading -> {}
+
                 }
+            } else {
+                _cities.emit(ArrayList())
             }
+        }
 
+    }
 
+    fun saveCity(city: SearchedCity) {
+        viewModelScope.launch {
+            val success = saveCityModelToLocalDatabaseUseCase.invoke(city)
+            Log.d("DATA", success.toString())
         }
     }
+}

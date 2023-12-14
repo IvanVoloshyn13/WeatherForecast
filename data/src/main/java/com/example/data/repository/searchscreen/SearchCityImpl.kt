@@ -40,6 +40,7 @@ class SearchCityImpl @Inject constructor(
 fun CitiesSearchResponse.toSearchedCityList(): ArrayList<SearchedCity> {
     return this.citiesList.map { city: City ->
         SearchedCity(
+            id=city.id,
             cityName = city.name,
             latitude = city.latitude,
             longitude = city.longitude,

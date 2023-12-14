@@ -1,5 +1,7 @@
 package com.example.weatherforecast.screens.main.models
 
-sealed class MainScreenEvents {
-    object GetWeatherByCurrentLocation : MainScreenEvents()
-}
+import com.example.domain.models.searchscreen.SearchedCity
+
+sealed class MainScreenEvents
+object GetWeatherByCurrentLocation : MainScreenEvents()
+class GetWeather(val city: SearchedCity) : MainScreenEvents()
