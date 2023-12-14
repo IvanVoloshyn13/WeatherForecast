@@ -6,20 +6,31 @@
     app:startDestination="@id/mainFragment">
 
     <fragment
+        app:route="main"
         android:id="@+id/mainFragment"
         android:name="com.example.weatherforecast.screens.main.MainFragment"
         android:label="MainFragment" >
         <action
             android:id="@+id/action_mainFragment_to_citySearchFragment"
             app:destination="@id/citySearchFragment" />
+        <argument
+            app:nullable="true"
+            android:name="city"
+            app:argType="com.example.domain.models.searchscreen.SearchedCity"
+            android:defaultValue="@null"/>
     </fragment>
+
     <fragment
         android:id="@+id/citySearchFragment"
         android:name="com.example.weatherforecast.screens.citysearch.CitySearchFragment"
         android:label="CitySearchFragment" >
-
         <action
-            android:id="@+id/action_citySearchFragment_to_mainFragment2"
-            app:destination="@id/mainFragment" />
+            android:id="@+id/action_citySearchFragment_to_mainFragment"
+            app:destination="@id/mainFragment" >
+
+        <argument
+            android:name="city"
+            app:argType="com.example.domain.models.searchscreen.SearchedCity" />
+        </action>
     </fragment>
 </navigation>

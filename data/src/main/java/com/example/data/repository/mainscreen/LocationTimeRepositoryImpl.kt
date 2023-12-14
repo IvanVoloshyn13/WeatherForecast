@@ -3,6 +3,7 @@ package com.example.data.repository.mainscreen
 import com.example.domain.repository.main.LocationTimeRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.cancellable
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import java.text.SimpleDateFormat

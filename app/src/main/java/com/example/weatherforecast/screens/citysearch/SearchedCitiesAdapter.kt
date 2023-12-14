@@ -10,15 +10,26 @@ import com.example.domain.models.searchscreen.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.ItemSearchCityBinding
 
-class SearchedCitiesAdapter :
+class SearchedCitiesAdapter(private val listener: RecyclerViewOnItemClick) :
     ListAdapter<SearchedCity, SearchedCitiesAdapter.CitiesViewHolder>(CitiesDiffUtil()) {
 
     val citiesList = ArrayList<SearchedCity>()
 
-    inner class CitiesViewHolder(view: View) : RecyclerView.ViewHolder(view) {
+    inner class CitiesViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
+        init {
+            view.setOnClickListener(this)
+        }
+
         val binding = ItemSearchCityBinding.bind(view)
         fun bind(item: SearchedCity) {
             binding.tvCity.text = item.toString()
+        }
+
+        override fun onClick(v: View?) {
+            val position = adapterPosition
+            if (position != RecyclerView.NO_POSITION) {
+                listener.onItemClick(citiesList[position])
+            }
         }
     }
 
@@ -52,5 +63,9 @@ class SearchedCitiesAdapter :
         citiesList.clear()
         citiesList.addAll(list)
         notifyDataSetChanged()
+    }
+
+    interface RecyclerViewOnItemClick {
+        fun onItemClick(city: SearchedCity)
     }
 }

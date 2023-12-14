@@ -4,6 +4,7 @@ import com.squareup.moshi.JsonClass
 
 @JsonClass(generateAdapter = true)
 data class City(
+    val id: Int = 0,
     val country: String = "",
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,

@@ -1,6 +1,7 @@
 package com.example.weatherforecast.screens.main
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.Menu
@@ -13,6 +14,7 @@ import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
 import androidx.drawerlayout.widget.DrawerLayout
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResultListener
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
@@ -20,11 +22,14 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.domain.models.searchscreen.SearchedCity
 import com.example.weatherforecast.GpsStatus
 import com.example.weatherforecast.R
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
+import com.example.weatherforecast.screens.main.models.GetWeather
+import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,6 +53,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
+    @Suppress("DEPRECATION")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -56,6 +62,20 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         hourlyAdapter = HourlyAdapter()
         dailyAdapter = DailyAdapter()
         drawerLayout = binding.mainDrawer
+
+        setFragmentResultListener("city") { _, bundle ->
+            val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                bundle.getParcelable("bundle_key", SearchedCity::class.java)
+            } else {
+                bundle.getParcelable("bundle_key")
+            }
+
+            if (result != null) {
+                viewModel.setEvent(GetWeather(result))
+            }
+
+        }
+
 
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
@@ -136,12 +156,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         }
     }
 
-    override fun onPause() {
-        super.onPause()
-        viewModel.stopTimeObserve()
-
-    }
-
 
     private fun observeConnectivityStatus() {
         if (activity != null && activity is UpdateConnectivityStatus) {
@@ -176,7 +190,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             GpsStatus.Available -> {
                 binding.noGpsDialog.noGpsDialog.visibility = View.GONE
                 binding.mainGroup.visibility = View.VISIBLE
-                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
+                viewModel.setEvent(GetWeatherByCurrentLocation)
             }
         }
     }
@@ -207,7 +221,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             }
 
             R.id.current_location -> {
-                viewModel.setEvent(MainScreenEvents.GetWeatherByCurrentLocation)
+                viewModel.setEvent(GetWeatherByCurrentLocation)
                 drawerLayout.close()
             }
 

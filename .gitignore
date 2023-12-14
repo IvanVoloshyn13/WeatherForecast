@@ -15,3 +15,9 @@ core/network/src/main/java/com/example/network/utils/Unsplash.kt
 .externalNativeBuild
 .cxx
 local.properties
+/caches
+/wrapper
+/native
+/kotlin-profile
+/jdks
+/daemon

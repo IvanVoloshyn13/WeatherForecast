@@ -7,10 +7,13 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
+import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.setFragmentResult
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
+import com.example.domain.models.searchscreen.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentCitySearchBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -20,7 +23,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CitySearchFragment : Fragment() {
+class CitySearchFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnItemClick {
     private val binding by lazy { FragmentCitySearchBinding.inflate(layoutInflater) }
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
@@ -48,7 +51,7 @@ class CitySearchFragment : Fragment() {
             setIconifiedByDefault(false)
             queryHint = getString(R.string.please_enter_city_name)
         }
-        adapter = SearchedCitiesAdapter()
+        adapter = SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
         return binding.root
     }
 
@@ -95,7 +98,12 @@ class CitySearchFragment : Fragment() {
     private fun onBackPressed() {
         searchViewModel.search("")
         findNavController().popBackStack()
+    }
 
+    override fun onItemClick(city: SearchedCity) {
+        searchViewModel.saveCity(city)
+        setFragmentResult("city", bundleOf("bundle_key" to city))
+        onBackPressed()
     }
 
 
