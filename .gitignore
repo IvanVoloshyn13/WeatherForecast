@@ -21,3 +21,5 @@ local.properties
 /kotlin-profile
 /jdks
 /daemon
+android.lock
+android

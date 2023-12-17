@@ -94,7 +94,6 @@ class FusedLocationProviderImpl @Inject constructor(
                                 continuation.resumeWithException(it)
                             }
                         }
-
                     }
 
                     }

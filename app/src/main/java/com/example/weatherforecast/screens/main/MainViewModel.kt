@@ -21,7 +21,6 @@ import com.example.weatherforecast.screens.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -71,8 +70,11 @@ class MainViewModel @Inject constructor(
                     hourlyForecast = weather?.hourlyForecast,
                     dailyForecast = weather?.dailyForecast,
                     time = time ?: "",
-                    cityImage = cityImage
-//                    networkStatus = networkStatus
+                    cityImage = cityImage,
+//                    isLoading = location.city.isEmpty() ||
+//                        cityImage?.cityImageUrl == null ||
+//                        weather?.hourlyForecast == null ||
+//                        weather?.dailyForecast == null
                 )
             }
         }.launchIn(viewModelScope)
@@ -82,84 +84,45 @@ class MainViewModel @Inject constructor(
     fun setEvent(event: MainScreenEvents) {
         when (event) {
             GetWeatherByCurrentLocation -> {
-                initMainScreen()
+                getDataByCurrentUserLocation()
             }
 
             is GetWeather -> {
-                getWeather(event.city)
+                getDataBySearchedCityLocation(event.city)
                 viewModelScope.launch {
                 }
             }
         }
     }
 
-    fun initMainScreen() {
+    private fun getDataByCurrentUserLocation() {
         viewModelScope.launch(exceptionHandler) {
-            val locationResource = async { currentUserLocationUseCase.invoke() }.await()
-            when (locationResource) {
-                is Resource.Success -> {
-                    locationResource.data.let { currentUserLocation ->
-                        _location.value =
-                            CurrentUserLocation(
-                                city = currentUserLocation.city,
-                                latitude = currentUserLocation.latitude,
-                                longitude = currentUserLocation.longitude,
-                                timeZoneID = currentUserLocation.timeZoneID
-                            )
+            val locationResource = getCurrentUserLocation()
+            if (locationResource != null) {
+                val timezoneId =
+                    getWeatherByLocation(
+                        locationResource.latitude,
+                        locationResource.longitude
+                    )
 
-                        getWeatherByLocation(
-                            currentUserLocation.latitude,
-                            currentUserLocation.longitude
-                        )
-
-                        val timezone = async {
-                            getCurrentUserLocationTimeZoneUseCase.invoke(
-                                currentUserLocation.latitude,
-                                currentUserLocation.longitude
-                            )
-                        }
-
-                        timezone.await().let { result ->
-                            when (result) {
-                                is Resource.Success -> {
-                                    if (result.data.isNotEmpty()) {
-                                        if (locationTimeJob != null) {
-                                            stopTimeObserve()
-                                            getLocationTime(result.data)
-                                        } else {
-                                            getLocationTime(result.data)
-                                        }
-                                    }
-                                }
-
-                                is Resource.Error -> {}
-                                is Resource.Loading -> {
-
-                                }
-                            }
-
-                        }
-
-                        async {
-                            getCityImage(currentUserLocation.city)
-                        }
+                if (locationTimeJob != null) {
+                    stopTimeObserve()
+                    if (locationTimeJob?.isCompleted == true) {
+                        getTimeForLocation(timeZoneId = timezoneId)
                     }
+                } else {
+                    getTimeForLocation(timeZoneId = timezoneId)
                 }
+                getCityImage(locationResource.city)
 
-                is Resource.Error -> {
-                    TODO()
-                }
-
-                is Resource.Loading -> {
-                    TODO()
-                }
             }
         }
     }
 
-    private fun getWeather(city: SearchedCity) {
+
+    private fun getDataBySearchedCityLocation(city: SearchedCity) {
         viewModelScope.launch {
-            val weather = async { getWeatherByLocation(city.latitude, city.longitude) }
+            getWeatherByLocation(city.latitude, city.longitude)
             _location.value =
                 CurrentUserLocation(
                     city = city.cityName,
@@ -167,55 +130,91 @@ class MainViewModel @Inject constructor(
                     longitude = city.longitude,
                     timeZoneID = city.timezone
                 )
-            async { getCityImage(city.cityName) }
+            getCityImage(city.cityName)
             stopTimeObserve()
             if (locationTimeJob?.isCompleted == true) {
-                getLocationTime(timeZoneId = city.timezone)
+                getTimeForLocation(timeZoneId = city.timezone)
             }
+
         }
     }
+
+    private suspend fun getCurrentUserLocation(): CurrentUserLocation? {
+        val locationResource = currentUserLocationUseCase.invoke()
+        return when (locationResource) {
+            is Resource.Success -> {
+                locationResource.data.let { currentUserLocation ->
+                    _location.value =
+                        CurrentUserLocation(
+                            city = currentUserLocation.city,
+                            latitude = currentUserLocation.latitude,
+                            longitude = currentUserLocation.longitude,
+                            timeZoneID = currentUserLocation.timeZoneID
+                        )
+                }
+                locationResource.data
+            }
+
+
+            is Resource.Error -> {
+                // TODO()
+                null
+            }
+
+        }
+
+    }
+
 
     private suspend fun getCityImage(cityName: String) {
         val image = getUnsplashImageByCityName.invoke(cityName)
         when (image) {
             is Resource.Success -> {
-                image.data?.let {
-                    _cityImage.value = it
+                image.data.let {
+                    _cityImage.value = it ?: null
                 }
             }
 
-            is Resource.Error -> {}
-            is Resource.Loading -> {}
+            is Resource.Error -> {  // TODO()
+            }
+
         }
     }
 
 
-    private suspend fun getWeatherByLocation(latitude: Double, longitude: Double) {
+    private suspend fun getWeatherByLocation(latitude: Double, longitude: Double): String {
         val weatherResource = getWeatherDataUseCase.invoke(
             latitude = latitude,
             longitude = longitude
         )
-        when (weatherResource) {
+        return when (weatherResource) {
             is Resource.Success -> {
-                weatherResource.data?.let { weatherData ->
+                weatherResource.data.let { weatherData ->
                     val dailyForecast = weatherData.dailyForecast
                     val hourlyForecast = weatherData.hourlyForecast
                     val mainWeatherInfo = weatherData.mainWeatherInfo
+                    val timeZoneId = weatherData.timezone
 
                     _weather.value = WeatherComponents(
                         mainWeatherInfo = mainWeatherInfo,
                         hourlyForecast = hourlyForecast,
-                        dailyForecast = dailyForecast
+                        dailyForecast = dailyForecast,
+                        timezone = timeZoneId
                     )
+
                 }
+                weatherResource.data.timezone
             }
 
-            is Resource.Error -> {}
-            is Resource.Loading -> {}
+            is Resource.Error -> {
+                ""
+                // TODO
+            }
+
         }
     }
 
-    private fun getLocationTime(timeZoneId: String) {
+    private fun getTimeForLocation(timeZoneId: String) {
         locationTimeJob = viewModelScope.launch {
             getLocationTimeUseCase.invoke(timeZoneId, true).cancellable().collectLatest {
                 _time.value = it

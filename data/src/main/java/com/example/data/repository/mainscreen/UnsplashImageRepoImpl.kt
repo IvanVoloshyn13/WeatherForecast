@@ -18,30 +18,31 @@ class UnsplashImageRepoImpl @Inject constructor(
     @UnsplashApi private val apiUnsplashService: ApiUnsplashService,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : UnsplashImageRepository {
-    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage> = withContext(dispatcher) {
-        val result = executeApiCall(
-            { apiUnsplashService.getPictureByLocation(cityName=cityName) }
-        )
-        return@withContext when (result) {
-            is ApiResult.Success -> {
-                Resource.Success(data = result.data.toCityImage())
+    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage?> =
+        withContext(dispatcher) {
+            val result = executeApiCall(
+                { apiUnsplashService.getPictureByLocation(cityName = cityName) }
+            )
+            return@withContext when (result) {
+                is ApiResult.Success -> {
+                    Resource.Success(data = result.data.toCityImage())
+                }
 
-            }
-
-            is ApiResult.Error -> {
-                Resource.Error( message = "Something goes wrong. Try again")
+                is ApiResult.Error -> {
+                    Resource.Error(message = "Something goes wrong. Try again")
+                }
             }
         }
-    }
 }
 
-fun UnsplashApiResponse.toCityImage(): CityImage {
-    val randomImageNumber = this.imageList.size.toRandomNumber()
-    val imageUrl = this.imageList[randomImageNumber].imageUrls.small
-    return CityImage(cityImage = imageUrl)
-
+fun UnsplashApiResponse.toCityImage(): CityImage? {
+    return if (this.imageList.isNotEmpty()) {
+        val randomImageNumber = this.imageList.size.toRandomNumber()
+        val imageUrl = this.imageList[randomImageNumber].imageUrls.small
+        CityImage(imageUrl)
+    } else null
 }
 
 fun Int.toRandomNumber(): Int {
-    return  Random.nextInt(0, this)
+    return if (this > 0) Random.nextInt(0, this) else 0
 }

@@ -95,7 +95,8 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
             todayMinTemp,
             currentHourWeatherType,
             currentHourTemp
-        )
+        ),
+        timezone = timezone
     )
 }
 

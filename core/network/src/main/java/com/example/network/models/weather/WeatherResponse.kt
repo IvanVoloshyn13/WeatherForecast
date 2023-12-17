@@ -6,4 +6,5 @@ import com.squareup.moshi.JsonClass
 data class WeatherResponse(
     val daily: Daily,
     val hourly: Hourly,
+    val timezone: String
 )
