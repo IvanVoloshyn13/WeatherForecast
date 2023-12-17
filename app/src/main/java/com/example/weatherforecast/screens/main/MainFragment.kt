@@ -30,7 +30,6 @@ import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.screens.main.models.GetWeather
 import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
-import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineStart
@@ -134,10 +133,16 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                         binding.ivCityImage.apply {
                             this.scaleType = ImageView.ScaleType.FIT_XY
                         }.also { view ->
-                            view.load(it.cityImage.cityImage)
+                            view.load(it.cityImage.cityImageUrl)
                             // Glide.with(view).load(it.cityImage.cityImage).into(view)
                         }
 
+                    } else {
+                        binding.ivCityImage.apply {
+                            this.scaleType = ImageView.ScaleType.FIT_XY
+                        }.also {
+                            it.load(R.drawable.cloud_blue_sky)
+                        }
                     }
 
                 }

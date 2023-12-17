@@ -37,7 +37,6 @@ class SearchViewModel @Inject constructor(
                         Log.d("CITY_ERROR", list.message.toString())
                     }
 
-                    is Resource.Loading -> {}
 
                 }
             } else {

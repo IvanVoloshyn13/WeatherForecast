@@ -12,7 +12,8 @@ data class MainScreenState(
     val hourlyForecast: ArrayList<HourlyForecast>? = null,
     val dailyForecast: ArrayList<DailyForecast>? = null,
     val time: String,
-    val cityImage: CityImage?=null
+    val cityImage: CityImage? = null,
+    val isLoading: Boolean = false
 
 //    val networkStatus: NetworkObserver.NetworkStatus
 

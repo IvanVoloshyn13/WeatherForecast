@@ -5,87 +5,96 @@
     android:id="@+id/main_drawer"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
+
+
+
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+
+
+
         <ImageView
             android:id="@+id/iv_cityImage"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:src="@color/white">
+
         </ImageView>
 
 
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:orientation="vertical">
-
-        <include
-            android:id="@+id/toolbar"
-            layout="@layout/custom_toolbar" />
-
-        <androidx.core.widget.NestedScrollView
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:fillViewport="true">
+            android:orientation="vertical">
 
+            <include
+                android:id="@+id/toolbar"
+                layout="@layout/custom_toolbar" />
 
-            <androidx.constraintlayout.widget.ConstraintLayout
+            <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content">
+                android:layout_height="match_parent"
+                android:fillViewport="true">
 
-                <androidx.constraintlayout.widget.Group
-                    android:id="@+id/main_group"
+
+                <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    app:constraint_referenced_ids="main_weather_widget,widget_forecast">
+                    android:layout_height="wrap_content">
 
-                </androidx.constraintlayout.widget.Group>
+                    <androidx.constraintlayout.widget.Group
+                        android:id="@+id/main_group"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        app:constraint_referenced_ids="main_weather_widget,widget_forecast">
 
-                <include
-                    android:id="@+id/no_gps_dialog"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="12dp"
-                    android:layout_marginEnd="12dp"
-                    android:visibility="gone"
-                    app:layout_constraintTop_toTopOf="parent"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    layout="@layout/dialog_no_gps">
+                    </androidx.constraintlayout.widget.Group>
 
-                </include>
+                    <include
+                        android:id="@+id/no_gps_dialog"
+                        layout="@layout/dialog_no_gps"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="12dp"
+                        android:layout_marginEnd="12dp"
+                        android:visibility="gone"
+                        app:layout_constraintBottom_toBottomOf="parent"
+                        app:layout_constraintTop_toTopOf="parent">
 
-                <include
-                    android:id="@+id/main_weather_widget"
-                    layout="@layout/current_weather_info_widget"
-                    app:layout_constraintTop_toTopOf="parent">
+                    </include>
 
-
-                </include>
-
-                <include
-                    android:id="@+id/widget_forecast"
-                    layout="@layout/widget_forecast"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="24dp"
-                    android:layout_marginTop="18dp"
-                    android:layout_marginEnd="24dp"
-                    app:layout_constraintEnd_toEndOf="parent"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@id/main_weather_widget">
-
-                </include>
+                    <include
+                        android:id="@+id/main_weather_widget"
+                        layout="@layout/current_weather_info_widget"
+                        app:layout_constraintTop_toTopOf="parent">
 
 
-            </androidx.constraintlayout.widget.ConstraintLayout>
+                    </include>
+
+                    <include
+                        android:id="@+id/widget_forecast"
+                        layout="@layout/widget_forecast"
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="24dp"
+                        android:layout_marginTop="18dp"
+                        android:layout_marginEnd="24dp"
+                        app:layout_constraintEnd_toEndOf="parent"
+                        app:layout_constraintStart_toStartOf="parent"
+                        app:layout_constraintTop_toBottomOf="@id/main_weather_widget">
+
+                    </include>
 
 
-        </androidx.core.widget.NestedScrollView>
+
+                </androidx.constraintlayout.widget.ConstraintLayout>
 
 
-    </LinearLayout>
+            </androidx.core.widget.NestedScrollView>
+
+        </LinearLayout>
+
+
 
     </FrameLayout>
 
