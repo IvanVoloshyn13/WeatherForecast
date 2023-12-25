@@ -4,6 +4,6 @@ data class WeatherComponents(
     val mainWeatherInfo: MainWeatherInfo,
     val hourlyForecast: ArrayList<HourlyForecast>,
     val dailyForecast: ArrayList<DailyForecast>,
-    val timezone: String
+    val timezone: String,
 )
 
