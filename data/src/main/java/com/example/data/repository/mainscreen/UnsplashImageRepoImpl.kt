@@ -1,9 +1,11 @@
 package com.example.data.repository.mainscreen
 
 import com.example.data.di.IoDispatcher
+import com.example.data.mappers.toResourceError
 import com.example.domain.models.mainscreen.unsplash.CityImage
 import com.example.domain.repository.main.UnsplashImageRepository
 import com.example.domain.utils.Resource
+import com.example.http.exeptions.ApiException
 import com.example.http.utils.ApiResult
 import com.example.http.utils.executeApiCall
 import com.example.network.apiServices.mainscreen.ApiUnsplashService
@@ -18,29 +20,35 @@ class UnsplashImageRepoImpl @Inject constructor(
     @UnsplashApi private val apiUnsplashService: ApiUnsplashService,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : UnsplashImageRepository {
-    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage?> =
+    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage> =
         withContext(dispatcher) {
-            val result = executeApiCall(
-                { apiUnsplashService.getPictureByLocation(cityName = cityName) }
-            )
-            return@withContext when (result) {
-                is ApiResult.Success -> {
-                    Resource.Success(data = result.data.toCityImage())
+            try {
+                val result = executeApiCall(
+                    call = { apiUnsplashService.getPictureByLocation(cityName = cityName) },
+                )
+                return@withContext when (result) {
+                    is ApiResult.Success -> {
+                        if (result.data.imageList.isNotEmpty()) {
+                            Resource.Success(data = result.data.toCityImage())
+                        } else {
+                            Resource.Error(message = "Cant load image")
+                        }
+                    }
+                    is ApiResult.Error -> {
+                        Resource.Error(message = result.message, e = result.e)
+                    }
                 }
-
-                is ApiResult.Error -> {
-                    Resource.Error(message = "Something goes wrong. Try again")
-                }
+            } catch (e: ApiException) {
+                return@withContext e.toResourceError()
             }
         }
+
 }
 
-fun UnsplashApiResponse.toCityImage(): CityImage? {
-    return if (this.imageList.isNotEmpty()) {
-        val randomImageNumber = this.imageList.size.toRandomNumber()
-        val imageUrl = this.imageList[randomImageNumber].imageUrls.small
-        CityImage(imageUrl)
-    } else null
+fun UnsplashApiResponse.toCityImage(): CityImage {
+    val randomImageNumber = this.imageList.size.toRandomNumber()
+    val imageUrl = this.imageList[randomImageNumber].imageUrls.small
+    return CityImage(cityImageUrl = imageUrl)
 }
 
 fun Int.toRandomNumber(): Int {

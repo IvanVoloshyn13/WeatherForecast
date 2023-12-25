@@ -72,20 +72,20 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val hourlyForecast = toHourlyForecast()
     var todayMaxTemp: Int = 0
     var todayMinTemp: Int = 0
-    var currentHourWeatherType: WeatherType
+    var currentHourWeatherType: WeatherType = WeatherType.ClearSky
     var currentHourTemp: Int = 0
     dailyForecast[0]?.let {
         todayMaxTemp = it[0].maxTemperature
         todayMinTemp = it[0].minTemperature
     }
-    val calendar = Calendar.getInstance()
-    val localTime = LocalTime.now()
-    val time: Int = if (calendar.get(Calendar.MINUTE) < 30) localTime.hour else localTime.hour + 1
-    val currentHourWeather = hourlyForecast[0]!!.firstOrNull() { hourly ->
+    val time = getCurrentLocalTime()
+    val currentHourWeather = hourlyForecast[0]?.firstOrNull() { hourly ->
         hourly.currentDate.hour == time
     }
-    currentHourTemp = currentHourWeather!!.currentTemp
-    currentHourWeatherType = currentHourWeather.weatherType
+    if (currentHourWeather != null) {
+        currentHourTemp = currentHourWeather.currentTemp
+        currentHourWeatherType = currentHourWeather.weatherType
+    }
 
     return WeatherComponents(
         dailyForecast = dailyForecast[0] as ArrayList<DailyForecast>,
@@ -104,10 +104,7 @@ fun WeatherResponse.toHourlyForecastList(): ArrayList<HourlyForecast> {
     val hourlyForecast = this.toHourlyForecast()
     val todayHourly = hourlyForecast[0]
     val nextDayHourly: List<HourlyForecast>?
-    val calendar = Calendar.getInstance()
-    val localTime = LocalTime.now()
-    val time: Int = if (calendar.get(Calendar.MINUTE) < 30)
-        localTime.hour else localTime.hour + 1
+    val time = getCurrentLocalTime()
     return if (time > 0) {
         val resultHourly: ArrayList<HourlyForecast> = ArrayList()
         nextDayHourly = hourlyForecast[1]?.dropLast(24 - time)
@@ -119,9 +116,7 @@ fun WeatherResponse.toHourlyForecastList(): ArrayList<HourlyForecast> {
     } else {
         todayHourly as ArrayList<HourlyForecast>
     }
-
 }
-
 
 typealias ListOfTheWeekDate = List<String>
 
@@ -134,6 +129,13 @@ fun ListOfTheWeekDate.toListOfTheDayWeek(): ArrayList<String> {
     return daysList
 }
 
+private fun getCurrentLocalTime(): Int {
+    val calendar = Calendar.getInstance()
+    val localTime = LocalTime.now()
+    val time: Int = if (calendar.get(Calendar.MINUTE) < 30)
+        localTime.hour else localTime.hour + 1
+    return time
+}
 
 
 

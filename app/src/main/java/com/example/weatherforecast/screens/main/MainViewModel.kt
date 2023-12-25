@@ -8,16 +8,18 @@ import com.example.domain.models.mainscreen.unsplash.CityImage
 import com.example.domain.models.mainscreen.weather.MainWeatherInfo
 import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.models.searchscreen.SearchedCity
-import com.example.domain.usecase.mainscreen.GetCurrentUserLocationTimeZoneUseCase
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetUnsplashImageByCityName
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
+import com.example.weatherforecast.screens.main.models.ErrorState
 import com.example.weatherforecast.screens.main.models.GetWeather
 import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
+import com.example.weatherforecast.screens.main.models.MainErrorState
 import com.example.weatherforecast.screens.main.models.MainScreenEvents
 import com.example.weatherforecast.screens.main.models.MainScreenState
+import com.example.weatherforecast.screens.main.models.SuccessState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -37,7 +39,6 @@ class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
     private val getLocationTimeUseCase: GetLocationTimeUseCase,
-    private val getCurrentUserLocationTimeZoneUseCase: GetCurrentUserLocationTimeZoneUseCase,
     private val getUnsplashImageByCityName: GetUnsplashImageByCityName
 
 ) : ViewModel() {
@@ -51,33 +52,61 @@ class MainViewModel @Inject constructor(
     private val _weather = MutableStateFlow<WeatherComponents?>(null)
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
     private val _time = MutableStateFlow<String?>("0:00")
-    private val _cityImage = MutableStateFlow<CityImage?>(value = null)
-    private val _mainScreenState = MutableStateFlow<MainScreenState?>(MainScreenState.Default)
+    private val _cityImage = MutableStateFlow<CityImage>(CityImage(cityImageUrl = ""))
+    private val _successState = MutableStateFlow<SuccessState?>(SuccessState.Default)
+    val successState = _successState.asStateFlow()
+
+    private val _imageLoadingError = MutableStateFlow<ErrorState.ImageLoadingError?>(null)
+    private val _gpsProviderError = MutableStateFlow<ErrorState.GpsProviderError?>(null)
+    private val _weatherDataError = MutableStateFlow<ErrorState.WeatherDataError?>(null)
+    private val _errorState = MutableStateFlow<MainErrorState>(
+        MainErrorState(
+            gpsProviderError = null,
+            imageLoadingError = null,
+            weatherDataError = null
+        )
+    )
+
+    private val _mainScreenState =
+        MutableStateFlow<MainScreenState>(
+            MainScreenState(
+                successState = SuccessState.Default,
+                errorState = MainErrorState()
+            )
+        )
+
     val mainScreenState = _mainScreenState.asStateFlow()
 
 
     init {
+
         combine(
             _weather,
             _location,
             _time,
-            _cityImage
-        ) { weather, location, time, cityImage ->
-            _mainScreenState.update { state ->
-                state?.copy(
-                    location = location.city,
-                    mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
-                    hourlyForecast = weather?.hourlyForecast,
-                    dailyForecast = weather?.dailyForecast,
-                    time = time ?: "",
-                    cityImage = cityImage,
-//                    isLoading = location.city.isEmpty() ||
-//                        cityImage?.cityImageUrl == null ||
-//                        weather?.hourlyForecast == null ||
-//                        weather?.dailyForecast == null
+            _cityImage,
+            ::combineSuccessState
+        ).launchIn(viewModelScope)
+
+        combine(
+            _imageLoadingError,
+            _weatherDataError,
+            _gpsProviderError,
+            ::combineErrorState
+        ).launchIn(viewModelScope)
+
+        combine(
+            _successState, _errorState
+        ) { successState, errorState ->
+            _mainScreenState.update {
+                it.copy(
+                    successState = successState ?: SuccessState.Default,
+                    errorState = errorState
                 )
             }
+
         }.launchIn(viewModelScope)
+
 
     }
 
@@ -89,8 +118,6 @@ class MainViewModel @Inject constructor(
 
             is GetWeather -> {
                 getDataBySearchedCityLocation(event.city)
-                viewModelScope.launch {
-                }
             }
         }
     }
@@ -104,7 +131,6 @@ class MainViewModel @Inject constructor(
                         locationResource.latitude,
                         locationResource.longitude
                     )
-
                 if (locationTimeJob != null) {
                     stopTimeObserve()
                     if (locationTimeJob?.isCompleted == true) {
@@ -115,6 +141,8 @@ class MainViewModel @Inject constructor(
                 }
                 getCityImage(locationResource.city)
 
+            } else {
+//TODO()
             }
         }
     }
@@ -131,11 +159,14 @@ class MainViewModel @Inject constructor(
                     timeZoneID = city.timezone
                 )
             getCityImage(city.cityName)
-            stopTimeObserve()
-            if (locationTimeJob?.isCompleted == true) {
+            if (locationTimeJob == null) {
                 getTimeForLocation(timeZoneId = city.timezone)
+            } else {
+                stopTimeObserve()
+                if (locationTimeJob?.isCompleted == true) {
+                    getTimeForLocation(timeZoneId = city.timezone)
+                }
             }
-
         }
     }
 
@@ -144,6 +175,7 @@ class MainViewModel @Inject constructor(
         return when (locationResource) {
             is Resource.Success -> {
                 locationResource.data.let { currentUserLocation ->
+                    _gpsProviderError.value = null
                     _location.value =
                         CurrentUserLocation(
                             city = currentUserLocation.city,
@@ -157,12 +189,13 @@ class MainViewModel @Inject constructor(
 
 
             is Resource.Error -> {
-                // TODO()
+                locationResource.message?.let { message ->
+                    _gpsProviderError.value = ErrorState.GpsProviderError(message = message)
+                }
+                _location.value = CurrentUserLocation.DEFAULT
                 null
             }
-
         }
-
     }
 
 
@@ -171,13 +204,19 @@ class MainViewModel @Inject constructor(
         when (image) {
             is Resource.Success -> {
                 image.data.let {
-                    _cityImage.value = it ?: null
+                    _cityImage.value = it
                 }
+                _imageLoadingError.value = null
             }
 
-            is Resource.Error -> {  // TODO()
+            is Resource.Error -> {
+                _cityImage.value = CityImage(cityImageUrl = null)
+                image.message?.let { message ->
+                    _imageLoadingError.value =
+                        ErrorState.ImageLoadingError(message = message, e = image.e)
+                }
+                _cityImage.value = CityImage(cityImageUrl = null)
             }
-
         }
     }
 
@@ -189,6 +228,7 @@ class MainViewModel @Inject constructor(
         )
         return when (weatherResource) {
             is Resource.Success -> {
+                _weather.value = null
                 weatherResource.data.let { weatherData ->
                     val dailyForecast = weatherData.dailyForecast
                     val hourlyForecast = weatherData.hourlyForecast
@@ -201,16 +241,19 @@ class MainViewModel @Inject constructor(
                         dailyForecast = dailyForecast,
                         timezone = timeZoneId
                     )
-
                 }
                 weatherResource.data.timezone
             }
 
             is Resource.Error -> {
+                weatherResource.message?.let { message ->
+                    _weatherDataError.value =
+                        ErrorState.WeatherDataError(message = message, e = weatherResource.e)
+                }
+                _weather.value = null
                 ""
-                // TODO
-            }
 
+            }
         }
     }
 
@@ -227,5 +270,37 @@ class MainViewModel @Inject constructor(
         locationTimeJob?.cancelAndJoin()
     }
 
+    private fun combineSuccessState(
+        weather: WeatherComponents?,
+        location: CurrentUserLocation,
+        time: String?,
+        cityImage: CityImage?
+    ) {
+        _successState.update { state ->
+            state?.copy(
+                location = location.city,
+                mainWeatherInfo = weather?.mainWeatherInfo ?: MainWeatherInfo.Default,
+                hourlyForecast = weather?.hourlyForecast,
+                dailyForecast = weather?.dailyForecast,
+                time = time ?: "",
+                cityImage = cityImage,
+            )
+        }
+    }
+
+    private fun combineErrorState(
+        imageError: ErrorState.ImageLoadingError?,
+        weatherDataError: ErrorState.WeatherDataError?,
+        gpsProviderError: ErrorState.GpsProviderError?
+    ) {
+        _errorState.update { state ->
+            state.copy(
+                gpsProviderError = gpsProviderError,
+                weatherDataError = weatherDataError,
+                imageLoadingError = imageError
+            )
+
+        }
+    }
 
 }

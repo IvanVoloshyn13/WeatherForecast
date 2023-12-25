@@ -4,11 +4,9 @@ import android.util.Log
 import com.example.http.exeptions.ApiException
 import com.squareup.moshi.JsonDataException
 import com.squareup.moshi.Moshi
-
 import kotlinx.coroutines.delay
 import retrofit2.Response
 import java.io.IOException
-import java.lang.Exception
 
 
 public suspend fun <T> executeApiCall(
@@ -17,7 +15,7 @@ public suspend fun <T> executeApiCall(
     maxAttempts: Int = 3,
     shouldRetry: (Exception) -> Boolean = ::defaultShouldRetry,
     errorHandler: (Int, String?) -> Exception = ::defaultErrorHandler
-): ApiResult<T>{
+): ApiResult<T> {
     repeat(maxAttempts) { attempt ->
         try {
             return call().toResult(errorHandler)
@@ -46,21 +44,20 @@ private fun defaultShouldRetry(exception: Exception) = when (exception) {
 private fun defaultErrorHandler(code: Int, message: String?) = ApiException(code, message)
 
 
-
-
 private fun <T> Response<T>.toResult(errorHandler: (Int, String?) -> Exception): ApiResult<T> {
     return try {
         if (isSuccessful) {
-         ApiResult.Success( body()!!)
+            ApiResult.Success(body()!!)
         } else {
             val error = errorBody()?.let {
                 val errorAdapter = Moshi.Builder().build().adapter(Error::class.java)
                 errorAdapter.fromJson(it.source())
             }
+            ApiResult.Error<ApiException>(message = error?.message)
             throw errorHandler(code(), error?.message)
         }
     } catch (e: Exception) {
-        ApiResult.Error<String>( message = e.message)
+        ApiResult.Error<ApiException>(message = e.message, e = e)
         throw errorHandler(code(), null)
 
     }

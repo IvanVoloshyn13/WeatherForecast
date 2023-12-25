@@ -4,5 +4,5 @@ import com.example.domain.models.mainscreen.unsplash.CityImage
 import com.example.domain.utils.Resource
 
 interface UnsplashImageRepository {
-    suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage?>
+    suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage>
 }
