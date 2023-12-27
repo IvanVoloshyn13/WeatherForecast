@@ -1,9 +1,10 @@
 package com.example.domain.models.mainscreen.weather
 
 data class WeatherComponents(
-    val mainWeatherInfo: MainWeatherInfo,
-    val hourlyForecast: ArrayList<HourlyForecast>,
-    val dailyForecast: ArrayList<DailyForecast>,
-    val timezone: String,
+    val mainWeatherInfo: MainWeatherInfo = MainWeatherInfo(),
+    val hourlyForecast: ArrayList<HourlyForecast> = ArrayList(),
+    val dailyForecast: ArrayList<DailyForecast> = ArrayList(),
+    val timezone: String? = "",
+
 )
 

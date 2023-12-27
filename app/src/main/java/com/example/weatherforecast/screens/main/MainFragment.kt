@@ -22,6 +22,8 @@ import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import com.example.domain.models.mainscreen.weather.DailyForecast
+import com.example.domain.models.mainscreen.weather.HourlyForecast
 import com.example.domain.models.searchscreen.SearchedCity
 import com.example.weatherforecast.GpsStatus
 import com.example.weatherforecast.R
@@ -68,13 +70,10 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             } else {
                 bundle.getParcelable("bundle_key")
             }
-
             if (result != null) {
                 viewModel.setEvent(GetWeather(result))
             }
-
         }
-
 
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
@@ -91,16 +90,13 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         super.onViewCreated(view, savedInstanceState)
         val navigationView = binding.mainNavView
         navigationView.setNavigationItemSelectedListener(this)
-
         initHourlyRecycler()
         initDailyRecycler()
 //        val list = arrayOf("Lviv", "Warsaw","Krakow")
 //        val menu = navigationView.menu
-//
 //        for (index in list.indices) {
 //            menu.add(Menu.CATEGORY_ALTERNATIVE, index, Menu.CATEGORY_ALTERNATIVE, list[index]).setIcon(R.drawable.ic_current_location)
 //        }
-
     }
 
     override fun onStart() {
@@ -108,161 +104,156 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         observeConnectivityStatus()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
-                state?.let {
-                    binding.toolbar.tvToolbarTitle.text = it.successState.location
-                    binding.toolbar.tvCurrentTime.text = it.successState.time
-                    binding.mainWeatherWidget.apply {
-                        tvMaxTemp.text =
-                            "${it.successState.mainWeatherInfo.maxTemperature}\u00B0C"
-                        tvMinTemp.text =
-                            "${it.successState.mainWeatherInfo.minTemperature}\u00B0C"
-                        tvCurrentTemp.text =
-                            "${it.successState.mainWeatherInfo.currentTemperature}\u00B0C"
-                        tvWeatherTypeDesc.text =
-                            it.successState.mainWeatherInfo.weatherType.weatherType
-                        ivWeatherTypeIcon.setImageResource(it.successState.mainWeatherInfo.weatherType.weatherIcon)
-                    }
-
-                    if (it.successState.hourlyForecast != null)
-                        hourlyAdapter.submitList(it.successState.hourlyForecast)
-
-                    if (it.successState.dailyForecast != null) {
-                        dailyAdapter.submitList(it.successState.dailyForecast)
-                    }
-                    if (it.successState.cityImage?.cityImageUrl != null  ) {
-                        binding.ivCityImage.apply {
-                            this.scaleType = ImageView.ScaleType.FIT_XY
-                        }.also { view ->
-                            view.load(it.successState.cityImage.cityImageUrl)
+                with(binding) {
+                    with(state) {
+                        with(mainWeatherWidget) {
+                            tvCurrentTemp.text =
+                                mainWeatherInfo.currentTemperature.toString()
+                            tvMaxTemp.text =
+                                mainWeatherInfo.maxTemperature.toString()
+                            tvMinTemp.text =
+                                mainWeatherInfo.minTemperature.toString()
+                            tvWeatherTypeDesc.text =
+                                mainWeatherInfo.weatherType.weatherType
+                            ivWeatherTypeIcon.setImageResource(mainWeatherInfo.weatherType.weatherIcon)
+                        }
+                        with(toolbar) {
+                            tvCurrentTime.text = time
+                            tvToolbarTitle.text = location
+                        }
+                        if (currentWeatherLocationImage.isNotEmpty()) {
+                            ivCityImage.scaleType = ImageView.ScaleType.FIT_XY
+                            ivCityImage.load(currentWeatherLocationImage)
+                        } else {
+                            Toast.makeText(
+                                requireContext(),
+                                "${imageLoadingError?.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                            ivCityImage.scaleType = ImageView.ScaleType.FIT_XY
+                            ivCityImage.load(R.drawable.cloud_blue_sky)
                         }
                     }
+                }
+                dailyAdapter.submitList(state.dailyForecast as List<DailyForecast>)
+                hourlyAdapter.submitList(state.hourlyForecast as List<HourlyForecast>)
+            }
+        }
 
-                    it.errorState.imageLoadingError?.let {error->
-                        binding.ivCityImage.apply {
-                            this.scaleType = ImageView.ScaleType.FIT_XY
-                        }.also { view ->
-                            view.load(R.drawable.cloud_blue_sky)
-                        }
-                    }
 
+        binding.toolbar.bttAddNewCity.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding.toolbar.mainToolbar.setNavigationOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+    }
+
+    private fun observeConnectivityStatus() {
+        if (activity != null && activity is UpdateConnectivityStatus) {
+            val fragmentActivity = activity as UpdateConnectivityStatus
+            val networkJob = viewLifecycleOwner.lifecycleScope.launch(start = CoroutineStart.LAZY) {
+                fragmentActivity.networkStatus.collectLatest {
+                    observeNetworkStatus(it)
+                }
+            }
+            val gpsJob = viewLifecycleOwner.lifecycleScope.launch {
+                fragmentActivity.gpsStatus.collectLatest {
+                    observeGpsStatus(it)
+                }
+            }
+            if (requireActivity().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
+                networkJob.start()
+                gpsJob.start()
+            }
+        }
+    }
+
+    private fun observeGpsStatus(status: GpsStatus) {
+        when (status) {
+            GpsStatus.Unavailable -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.VISIBLE
+                binding.mainGroup.visibility = View.GONE
+            }
+
+            GpsStatus.Available -> {
+                binding.noGpsDialog.noGpsDialog.visibility = View.GONE
+                binding.mainGroup.visibility = View.VISIBLE
+                viewModel.setEvent(GetWeatherByCurrentLocation)
+            }
+        }
+    }
+
+    private fun observeNetworkStatus(network: NetworkStatus) {
+        if (isResumed) {
+            when (network) {
+                NetworkStatus.Available -> {
+                }
+
+                NetworkStatus.Lost -> {
+                    Toast.makeText(
+                        this@MainFragment.requireContext(),
+                        R.string.no_network,
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+
+                NetworkStatus.Unavailable -> {
+                    Toast.makeText(
+                        this@MainFragment.requireContext(),
+                        R.string.no_network,
+                        Toast.LENGTH_SHORT
+                    ).show()
                 }
             }
         }
-
-
-
-    binding.toolbar.bttAddNewCity.setOnClickListener{
-        findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
     }
-}
-
-override fun onResume() {
-    super.onResume()
-    binding.toolbar.mainToolbar.setNavigationOnClickListener {
-        drawerLayout.openDrawer(GravityCompat.START)
-    }
-}
 
 
-
-
-private fun observeConnectivityStatus() {
-    if (activity != null && activity is UpdateConnectivityStatus) {
-        val fragmentActivity = activity as UpdateConnectivityStatus
-        val networkJob = viewLifecycleOwner.lifecycleScope.launch(start = CoroutineStart.LAZY) {
-            fragmentActivity.networkStatus.collectLatest {
-                observeNetworkStatus(it)
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when (item.itemId) {
+            R.id.edit_location -> {
+                TODO("Not implemented method for current location")
             }
 
-        }
-        val gpsJob = viewLifecycleOwner.lifecycleScope.launch {
-            fragmentActivity.gpsStatus.collectLatest {
-                observeGpsStatus(it)
-            }
-        }
-
-        if (requireActivity().lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {
-            networkJob.start()
-            gpsJob.start()
-        }
-    }
-}
-
-
-private fun observeGpsStatus(status: GpsStatus) {
-    when (status) {
-        GpsStatus.Unavailable -> {
-            binding.noGpsDialog.noGpsDialog.visibility = View.VISIBLE
-            binding.mainGroup.visibility = View.GONE
-        }
-
-        GpsStatus.Available -> {
-            binding.noGpsDialog.noGpsDialog.visibility = View.GONE
-            binding.mainGroup.visibility = View.VISIBLE
-            viewModel.setEvent(GetWeatherByCurrentLocation)
-        }
-    }
-}
-
-private fun observeNetworkStatus(network: NetworkStatus) {
-    if (isResumed) {
-        when (network) {
-            NetworkStatus.Available -> {
+            R.id.current_location -> {
+                viewModel.setEvent(GetWeatherByCurrentLocation)
+                drawerLayout.close()
             }
 
-            NetworkStatus.Lost -> {
+            else -> {
+                drawerLayout.close()
                 Toast.makeText(
                     this@MainFragment.requireContext(),
-                    R.string.no_network,
+                    "${item}",
                     Toast.LENGTH_SHORT
                 ).show()
             }
         }
+        return true
     }
-}
 
-
-override fun onNavigationItemSelected(item: MenuItem): Boolean {
-    when (item.itemId) {
-        R.id.edit_location -> {
-            TODO("Not implemented method for current location")
-        }
-
-        R.id.current_location -> {
-            viewModel.setEvent(GetWeatherByCurrentLocation)
-            drawerLayout.close()
-        }
-
-        else -> {
-            drawerLayout.close()
-            Toast.makeText(
+    private fun initHourlyRecycler() {
+        binding.widgetForecast.rvHourlyForecast.adapter = hourlyAdapter
+        binding.widgetForecast.rvHourlyForecast.layoutManager =
+            LinearLayoutManager(
                 this@MainFragment.requireContext(),
-                "${item}",
-                Toast.LENGTH_SHORT
-            ).show()
-
-        }
+                RecyclerView.HORIZONTAL, false
+            )
     }
 
-    return true
-}
-
-private fun initHourlyRecycler() {
-    binding.widgetForecast.rvHourlyForecast.adapter = hourlyAdapter
-    binding.widgetForecast.rvHourlyForecast.layoutManager =
-        LinearLayoutManager(this@MainFragment.requireContext(), RecyclerView.HORIZONTAL, false)
-}
-
-private fun initDailyRecycler() {
-    binding.widgetForecast.rvDaily.adapter = dailyAdapter
-    binding.widgetForecast.rvDaily.layoutManager = LinearLayoutManager(
-        this@MainFragment.requireContext(),
-        RecyclerView.VERTICAL, false
-    )
-
-}
-
-
+    private fun initDailyRecycler() {
+        binding.widgetForecast.rvDaily.adapter = dailyAdapter
+        binding.widgetForecast.rvDaily.layoutManager =
+            LinearLayoutManager(
+                this@MainFragment.requireContext(),
+                RecyclerView.VERTICAL, false
+            )
+    }
 }
 
 

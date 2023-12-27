@@ -48,8 +48,7 @@ class SearchViewModel @Inject constructor(
 
     fun saveCity(city: SearchedCity) {
         viewModelScope.launch {
-            val success = saveCityModelToLocalDatabaseUseCase.invoke(city)
-            Log.d("DATA", success.toString())
+           saveCityModelToLocalDatabaseUseCase.invoke(city)
         }
     }
 }
