@@ -1,20 +1,9 @@
 package com.example.domain.models.mainscreen.weather
 
-import com.example.domain.R
-
 data class MainWeatherInfo(
-    val maxTemperature: Int,
-    val minTemperature: Int,
-    val weatherType: WeatherType,
-    val currentTemperature: Int,
-) {
-    companion object {
-        val Default = MainWeatherInfo(
-            maxTemperature = 0,
-            minTemperature = 0,
-            weatherType = WeatherType.fromWHO(1),
-            currentTemperature = 0,
+    val maxTemperature: Int = 0,
+    val minTemperature: Int = 0,
+    val weatherType: WeatherType = WeatherType.fromWHO(1),
+    val currentTemperature: Int = 0,
+)
 
-        )
-    }
-}

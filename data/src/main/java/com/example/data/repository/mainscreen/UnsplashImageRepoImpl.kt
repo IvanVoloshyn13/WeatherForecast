@@ -2,7 +2,7 @@ package com.example.data.repository.mainscreen
 
 import com.example.data.di.IoDispatcher
 import com.example.data.mappers.toResourceError
-import com.example.domain.models.mainscreen.unsplash.CityImage
+import com.example.domain.models.mainscreen.unsplash.CurrentLocationImage
 import com.example.domain.repository.main.UnsplashImageRepository
 import com.example.domain.utils.Resource
 import com.example.http.exeptions.ApiException
@@ -20,7 +20,7 @@ class UnsplashImageRepoImpl @Inject constructor(
     @UnsplashApi private val apiUnsplashService: ApiUnsplashService,
     @IoDispatcher private val dispatcher: CoroutineDispatcher
 ) : UnsplashImageRepository {
-    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CityImage> =
+    override suspend fun getUnsplashCityImageByName(cityName: String): Resource<CurrentLocationImage> =
         withContext(dispatcher) {
             try {
                 val result = executeApiCall(
@@ -45,10 +45,10 @@ class UnsplashImageRepoImpl @Inject constructor(
 
 }
 
-fun UnsplashApiResponse.toCityImage(): CityImage {
+fun UnsplashApiResponse.toCityImage(): CurrentLocationImage {
     val randomImageNumber = this.imageList.size.toRandomNumber()
     val imageUrl = this.imageList[randomImageNumber].imageUrls.small
-    return CityImage(cityImageUrl = imageUrl)
+    return CurrentLocationImage(cityImageUrl = imageUrl)
 }
 
 fun Int.toRandomNumber(): Int {

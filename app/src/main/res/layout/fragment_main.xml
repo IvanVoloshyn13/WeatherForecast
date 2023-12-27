@@ -7,11 +7,9 @@
     android:layout_height="match_parent">
 
 
-
     <FrameLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-
 
 
         <ImageView
@@ -32,15 +30,16 @@
                 android:id="@+id/toolbar"
                 layout="@layout/custom_toolbar" />
 
+
             <androidx.core.widget.NestedScrollView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:fillViewport="true">
 
-
                 <androidx.constraintlayout.widget.ConstraintLayout
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content">
+
 
                     <androidx.constraintlayout.widget.Group
                         android:id="@+id/main_group"
@@ -86,14 +85,12 @@
                     </include>
 
 
-
                 </androidx.constraintlayout.widget.ConstraintLayout>
 
 
             </androidx.core.widget.NestedScrollView>
 
         </LinearLayout>
-
 
 
     </FrameLayout>
