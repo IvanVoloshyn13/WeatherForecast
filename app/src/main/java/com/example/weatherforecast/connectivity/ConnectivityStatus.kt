@@ -1,10 +1,12 @@
 package com.example.weatherforecast.connectivity
 
-import com.example.weatherforecast.GpsStatus
+fun Boolean.toGpsStatus(): GpsStatus {
+    return when (this) {
+        true -> GpsStatus.Available
+        false -> GpsStatus.Unavailable
+    }
+}
 
-data class ConnectivityStatus(
-    val networkStatus: NetworkStatus?,
-    val gpsStatus: GpsStatus?
-
-
-)
+enum class GpsStatus {
+    Available, Unavailable
+}

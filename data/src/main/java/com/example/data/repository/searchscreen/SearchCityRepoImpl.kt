@@ -4,7 +4,7 @@ import com.example.data.di.IoDispatcher
 import com.example.data.mappers.toResourceError
 import com.example.domain.models.searchscreen.SearchedCity
 import com.example.domain.repository.search.CitiesList
-import com.example.domain.repository.search.SearchCity
+import com.example.domain.repository.search.SearchCityRepo
 import com.example.domain.utils.Resource
 import com.example.http.exeptions.ApiException
 import com.example.http.utils.ApiResult
@@ -17,10 +17,10 @@ import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
 
-class SearchCityImpl @Inject constructor(
+class SearchCityRepoImpl @Inject constructor(
     private val searchCityService: ApiSearchCityService,
     @IoDispatcher val dispatcher: CoroutineDispatcher
-) : SearchCity {
+) : SearchCityRepo {
 
     override suspend fun searchCityByName(cityName: String): Resource<CitiesList> =
         withContext(dispatcher) {

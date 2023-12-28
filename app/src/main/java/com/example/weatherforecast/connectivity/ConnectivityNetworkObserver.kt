@@ -14,11 +14,8 @@ class ConnectivityNetworkObserver(
     var context: Context
 ) {
 
-
-
     private val connectivityManager =
                 context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
-
 
     fun observe(): Flow<NetworkStatus> {
         val networkStatus =

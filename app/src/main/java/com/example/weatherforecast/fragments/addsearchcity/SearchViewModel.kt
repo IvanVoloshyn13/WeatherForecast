@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.citysearch
+package com.example.weatherforecast.fragments.addsearchcity
 
 import android.util.Log
 import androidx.lifecycle.ViewModel

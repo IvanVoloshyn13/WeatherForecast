@@ -10,21 +10,20 @@ import androidx.fragment.app.DialogFragment
 import com.example.weatherforecast.databinding.DialogGpsBinding
 
 class GpsPermissionDialog : DialogFragment() {
-    private lateinit var binding: DialogGpsBinding
+    private val binding: DialogGpsBinding by lazy { DialogGpsBinding.inflate(layoutInflater) }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View? {
-        binding = DialogGpsBinding.inflate(inflater, container, false)
         return binding.root
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.bttEnableLocation.setOnClickListener {
-           this@GpsPermissionDialog.dialog!!.cancel()
+            this@GpsPermissionDialog.dialog!!.cancel()
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf(

@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.main
+package com.example.weatherforecast.fragments.main
 
 import android.annotation.SuppressLint
 import android.view.LayoutInflater
@@ -45,6 +45,6 @@ class DailyAdapter : RecyclerView.Adapter<DailyAdapter.DailyViewHolder>() {
     fun submitList(list:List<DailyForecast>){
         dailyForecast.clear()
         dailyForecast.addAll(list)
-        notifyDataSetChanged()
+        notifyDataSetChanged() //TODO() setup this method with more specific change event if it have sense
     }
 }

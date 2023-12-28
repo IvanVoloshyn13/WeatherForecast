@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.main.models
+package com.example.weatherforecast.fragments.main.models
 
 import com.example.domain.models.searchscreen.SearchedCity
 

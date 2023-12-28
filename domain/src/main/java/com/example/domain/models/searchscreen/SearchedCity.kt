@@ -5,7 +5,7 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class SearchedCity(
-    val id: Int ,
+    val id: Int,
     val cityName: String,
     val latitude: Double,
     val longitude: Double,

@@ -1,8 +1,7 @@
 package com.example.domain.usecase.searchscreen
 
-import com.example.domain.repository.search.SearchCity
-import javax.inject.Inject
+import com.example.domain.repository.search.SearchCityRepo
 
-class SearchCityByNameUseCase @Inject constructor(private val searchCity: SearchCity) {
-    suspend fun invoke(cityName: String) = searchCity.searchCityByName(cityName)
+class SearchCityByNameUseCase(private val searchCityRepo: SearchCityRepo) {
+    suspend fun invoke(cityName: String) = searchCityRepo.searchCityByName(cityName)
 }

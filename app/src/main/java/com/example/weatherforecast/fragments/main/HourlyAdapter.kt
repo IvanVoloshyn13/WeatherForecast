@@ -1,12 +1,10 @@
-package com.example.weatherforecast.screens.main
+package com.example.weatherforecast.fragments.main
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import androidx.annotation.RequiresApi
 import androidx.recyclerview.widget.RecyclerView
 import com.example.domain.models.mainscreen.weather.HourlyForecast
 import com.example.weatherforecast.R
@@ -19,7 +17,6 @@ class HourlyAdapter : RecyclerView.Adapter<HourlyAdapter.HourlyViewHolder>() {
     inner class HourlyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemHourlyForecastBinding.bind(itemView)
 
-       @RequiresApi(Build.VERSION_CODES.O)
        @SuppressLint("SetTextI18n")
         fun bind(data: HourlyForecast) {
             binding.apply {
@@ -52,7 +49,7 @@ class HourlyAdapter : RecyclerView.Adapter<HourlyAdapter.HourlyViewHolder>() {
     fun submitList(hourly: List<HourlyForecast>) {
         hourlyForecast.clear()
         hourlyForecast.addAll(hourly)
-        notifyDataSetChanged()
+        notifyDataSetChanged() //TODO() setup this method with more specific change event if it have sense
     }
 
 }

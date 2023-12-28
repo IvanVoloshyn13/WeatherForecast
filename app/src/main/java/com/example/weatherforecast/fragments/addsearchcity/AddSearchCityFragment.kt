@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.citysearch
+package com.example.weatherforecast.fragments.addsearchcity
 
 import android.content.Context
 import android.os.Bundle
@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class CitySearchFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnItemClick {
+class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnItemClick {
     private val binding by lazy { FragmentCitySearchBinding.inflate(layoutInflater) }
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null

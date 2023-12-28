@@ -1,7 +1,6 @@
-package com.example.weatherforecast.screens.main.models
+package com.example.weatherforecast.fragments.main.models
 
 
-import com.example.domain.models.mainscreen.unsplash.CurrentLocationImage
 import com.example.domain.models.mainscreen.unsplash.ImageUrl
 import com.example.domain.models.mainscreen.weather.DailyForecast
 import com.example.domain.models.mainscreen.weather.HourlyForecast
