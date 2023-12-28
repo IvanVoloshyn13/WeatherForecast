@@ -4,7 +4,7 @@ import com.example.data.di.IoDispatcher
 import com.example.data.storage.room.AppDatabase
 import com.example.data.storage.room.CityEntity
 import com.example.domain.models.searchscreen.SearchedCity
-import com.example.domain.repository.search.SaveCity
+import com.example.domain.repository.search.SaveCityRepo
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
@@ -12,7 +12,7 @@ import javax.inject.Inject
 class LocalDatabaseOperationImpl @Inject constructor(
     private val database: AppDatabase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
-) : SaveCity {
+) : SaveCityRepo {
     override suspend fun saveCity(city: SearchedCity): Long = withContext(ioDispatcher) {
         return@withContext database.getCityDao().saveNewCity(city.toCityEntity())
     }

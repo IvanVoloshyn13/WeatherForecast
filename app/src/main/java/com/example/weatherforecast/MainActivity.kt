@@ -14,8 +14,10 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.data.location.checkLocationPermission
 import com.example.weatherforecast.connectivity.ConnectivityNetworkObserver
+import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
+import com.example.weatherforecast.connectivity.toGpsStatus
 import com.example.weatherforecast.databinding.ActivityMainBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CompletableJob
@@ -38,7 +40,6 @@ class MainActivity : AppCompatActivity(),
     private val locationManager: LocationManager by lazy {
         getSystemService(Context.LOCATION_SERVICE) as LocationManager
     }
-
 
     override val gpsStatus: MutableSharedFlow<GpsStatus> by lazy {
         MutableSharedFlow(
@@ -124,7 +125,6 @@ class MainActivity : AppCompatActivity(),
     override fun onStop() {
         super.onStop()
         networkJob.cancel()
-
     }
 
     private fun requestLocationPermission() {
@@ -150,16 +150,7 @@ class MainActivity : AppCompatActivity(),
 }
 
 
-    fun Boolean.toGpsStatus(): GpsStatus {
-        return when (this) {
-            true -> GpsStatus.Available
-            false -> GpsStatus.Unavailable
-        }
-    }
 
-    enum class GpsStatus {
-        Available, Unavailable
-    }
 
 
 

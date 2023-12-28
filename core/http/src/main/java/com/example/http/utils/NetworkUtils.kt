@@ -9,13 +9,13 @@ import retrofit2.Response
 import java.io.IOException
 
 
-public suspend fun <T> executeApiCall(
+ suspend fun <T> executeApiCall  (
     call: suspend () -> Response<T>,
     defaultDelay: Long = 100,
     maxAttempts: Int = 3,
     shouldRetry: (Exception) -> Boolean = ::defaultShouldRetry,
     errorHandler: (Int, String?) -> Exception = ::defaultErrorHandler
-): ApiResult<T> {
+) : ApiResult<T>  {
     repeat(maxAttempts) { attempt ->
         try {
             return call().toResult(errorHandler)

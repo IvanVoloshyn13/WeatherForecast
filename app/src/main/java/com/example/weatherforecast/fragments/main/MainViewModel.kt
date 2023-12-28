@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.main
+package com.example.weatherforecast.fragments.main
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
@@ -12,11 +12,11 @@ import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetUnsplashImageByCityNameUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
-import com.example.weatherforecast.screens.main.models.ErrorState
-import com.example.weatherforecast.screens.main.models.GetWeather
-import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
-import com.example.weatherforecast.screens.main.models.MainScreenEvents
-import com.example.weatherforecast.screens.main.models.MainScreenState
+import com.example.weatherforecast.fragments.main.models.ErrorState
+import com.example.weatherforecast.fragments.main.models.GetWeather
+import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
+import com.example.weatherforecast.fragments.main.models.MainScreenEvents
+import com.example.weatherforecast.fragments.main.models.MainScreenState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.Job
@@ -40,7 +40,7 @@ class MainViewModel @Inject constructor(
 
     private var locationTimeJob: Job? = null
 
-    private val exceptionHandler = CoroutineExceptionHandler { coroutineContext, throwable ->
+    private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
@@ -62,11 +62,9 @@ class MainViewModel @Inject constructor(
         )
     val mainScreenState = _mainScreenState.asStateFlow()
 
-
     init {
         updateState()
     }
-
 
     fun setEvent(event: MainScreenEvents) {
         when (event) {
@@ -146,7 +144,6 @@ class MainViewModel @Inject constructor(
                 }
             }
         }
-
     }
 
     private fun getDataByCurrentUserLocation() {
@@ -168,7 +165,6 @@ class MainViewModel @Inject constructor(
                     getTimeForLocation(timeZoneId = timezoneId)
                 }
                 getCityImage(location.city)
-
             }
         }
     }

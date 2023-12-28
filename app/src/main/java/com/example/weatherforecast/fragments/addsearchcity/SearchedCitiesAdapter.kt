@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.citysearch
+package com.example.weatherforecast.fragments.addsearchcity
 
 import android.view.LayoutInflater
 import android.view.View
@@ -20,7 +20,7 @@ class SearchedCitiesAdapter(private val listener: RecyclerViewOnItemClick) :
             view.setOnClickListener(this)
         }
 
-        val binding = ItemSearchCityBinding.bind(view)
+        private val binding = ItemSearchCityBinding.bind(view)
         fun bind(item: SearchedCity) {
             binding.tvCity.text = item.toString()
         }
@@ -62,7 +62,7 @@ class SearchedCitiesAdapter(private val listener: RecyclerViewOnItemClick) :
     fun submitList(list: ArrayList<SearchedCity>) {
         citiesList.clear()
         citiesList.addAll(list)
-        notifyDataSetChanged()
+        notifyDataSetChanged() //TODO() setup this method with more specific change event
     }
 
     interface RecyclerViewOnItemClick {

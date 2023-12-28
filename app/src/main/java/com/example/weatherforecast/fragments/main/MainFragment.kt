@@ -1,4 +1,4 @@
-package com.example.weatherforecast.screens.main
+package com.example.weatherforecast.fragments.main
 
 import android.annotation.SuppressLint
 import android.os.Build
@@ -8,7 +8,6 @@ import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.core.view.MenuHost
@@ -25,13 +24,13 @@ import coil.load
 import com.example.domain.models.mainscreen.weather.DailyForecast
 import com.example.domain.models.mainscreen.weather.HourlyForecast
 import com.example.domain.models.searchscreen.SearchedCity
-import com.example.weatherforecast.GpsStatus
 import com.example.weatherforecast.R
+import com.example.weatherforecast.connectivity.GpsStatus
 import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
-import com.example.weatherforecast.screens.main.models.GetWeather
-import com.example.weatherforecast.screens.main.models.GetWeatherByCurrentLocation
+import com.example.weatherforecast.fragments.main.models.GetWeather
+import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineStart
@@ -75,6 +74,11 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             }
         }
 
+        /**The view height code didnt work correctly on
+         * some devices with bottom system bar etc.
+         * TODO() refactor view height using insets
+         */
+
         val displayMetrics = requireContext().resources.displayMetrics
         val screenHeight = displayMetrics.heightPixels
         val density = displayMetrics.density
@@ -83,6 +87,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                     ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
         return binding.root
+
+
     }
 
     @SuppressLint("SetTextI18n")
@@ -122,15 +128,8 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                             tvToolbarTitle.text = location
                         }
                         if (currentWeatherLocationImage.isNotEmpty()) {
-                            ivCityImage.scaleType = ImageView.ScaleType.FIT_XY
                             ivCityImage.load(currentWeatherLocationImage)
                         } else {
-                            Toast.makeText(
-                                requireContext(),
-                                "${imageLoadingError?.message}",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                            ivCityImage.scaleType = ImageView.ScaleType.FIT_XY
                             ivCityImage.load(R.drawable.cloud_blue_sky)
                         }
                     }

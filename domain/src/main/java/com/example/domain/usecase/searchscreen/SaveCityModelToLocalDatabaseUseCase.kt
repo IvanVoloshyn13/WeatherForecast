@@ -1,11 +1,10 @@
 package com.example.domain.usecase.searchscreen
 
 import com.example.domain.models.searchscreen.SearchedCity
-import com.example.domain.repository.search.SaveCity
-import javax.inject.Inject
+import com.example.domain.repository.search.SaveCityRepo
 
-class SaveCityModelToLocalDatabaseUseCase @Inject constructor(private val saveCity: SaveCity) {
+class SaveCityModelToLocalDatabaseUseCase(private val saveCityRepo: SaveCityRepo) {
     suspend fun invoke(city: SearchedCity): Long {
-        return saveCity.saveCity(city)
+        return saveCityRepo.saveCity(city)
     }
 }
