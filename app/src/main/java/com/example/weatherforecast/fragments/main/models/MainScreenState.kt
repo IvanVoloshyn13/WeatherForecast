@@ -5,6 +5,7 @@ import com.example.domain.models.mainscreen.unsplash.ImageUrl
 import com.example.domain.models.mainscreen.weather.DailyForecast
 import com.example.domain.models.mainscreen.weather.HourlyForecast
 import com.example.domain.models.mainscreen.weather.MainWeatherInfo
+import com.example.domain.models.searchscreen.SearchedCity
 
 
 data class MainScreenState(
@@ -14,6 +15,7 @@ data class MainScreenState(
     val dailyForecast: ArrayList<DailyForecast>? = ArrayList(),
     val time: String = "",
     val currentWeatherLocationImage: ImageUrl = "",
+    val cities: ArrayList<SearchedCity> = ArrayList(),
     val gpsProviderError: ErrorState.GpsProviderError? = null,
     val weatherDataError: ErrorState.WeatherDataError? = null,
     val imageLoadingError: ErrorState.ImageLoadingError? = null,

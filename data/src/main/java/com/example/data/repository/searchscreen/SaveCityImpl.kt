@@ -9,7 +9,7 @@ import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.withContext
 import javax.inject.Inject
 
-class LocalDatabaseOperationImpl @Inject constructor(
+class SaveCityImpl @Inject constructor(
     private val database: AppDatabase,
     @IoDispatcher private val ioDispatcher: CoroutineDispatcher
 ) : SaveCityRepo {

@@ -2,16 +2,22 @@
     <!-- Base application theme. -->
     <style name="Base.V24.Night.Theme.WeatherForecast" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/purple_200</item>
-        <item name="colorPrimaryVariant">@color/purple_700</item>
-        <item name="colorOnPrimary">@color/black</item>
+        <item name="colorPrimary">@color/light_white</item>
+        <item name="colorSurface">@color/perfect_black</item>
+        <item name="colorPrimaryVariant">@color/light_gray</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/teal_200</item>
-        <item name="colorSecondaryVariant">@color/teal_200</item>
+        <item name="colorSecondary">@color/light_blue</item>
+        <item name="colorSecondaryVariant">@color/darker_gray</item>
+        <item name="colorAccent">@color/white</item>
         <item name="colorOnSecondary">@color/black</item>
+        <item name="colorError">@color/red</item>
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
+        <item name="android:buttonStyle">@style/Widget.WeatherForecast.Button</item>
+        <item name="android:textColorHint">@color/light_gray</item>
     </style>
 
     <style name="Base.Theme.WeatherForecast" parent="Base.V24.Night.Theme.WeatherForecast"/>

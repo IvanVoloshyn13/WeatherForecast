@@ -1,5 +1,4 @@
 package com.example.data.repository.mainscreen
-
 import com.example.data.di.IoDispatcher
 import com.example.data.mappers.toResourceError
 import com.example.domain.models.mainscreen.unsplash.CurrentLocationImage
@@ -34,6 +33,7 @@ class UnsplashImageRepoImpl @Inject constructor(
                             Resource.Error(message = "Cant load image")
                         }
                     }
+
                     is ApiResult.Error -> {
                         Resource.Error(message = result.message, e = result.e)
                     }

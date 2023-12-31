@@ -17,10 +17,9 @@ class HourlyAdapter : RecyclerView.Adapter<HourlyAdapter.HourlyViewHolder>() {
     inner class HourlyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemHourlyForecastBinding.bind(itemView)
 
-       @SuppressLint("SetTextI18n")
+        @SuppressLint("SetTextI18n")
         fun bind(data: HourlyForecast) {
             binding.apply {
-                Log.d("LOG", data.currentDate.toString())
                 tvHour.text =
                     data.currentDate.hour.toString() + ":00"
                 tvTemperature.text = data.currentTemp.toString()

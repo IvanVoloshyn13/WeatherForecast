@@ -1,8 +1,9 @@
 package com.example.domain.models.mainscreen.weather
 
-import android.graphics.drawable.Drawable
-import android.graphics.drawable.Icon
 import com.example.domain.R
+
+
+//TODO() remove this sealed class from Domain as it contains Android resources and paste it in App
 
 sealed class WeatherType(
     val weatherType: String,

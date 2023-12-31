@@ -9,10 +9,12 @@ import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.models.searchscreen.SearchedCity
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
+import com.example.domain.usecase.mainscreen.GetSavedLocationsListUseCase
 import com.example.domain.usecase.mainscreen.GetUnsplashImageByCityNameUseCase
 import com.example.domain.usecase.mainscreen.GetWeatherDataUseCase
 import com.example.domain.utils.Resource
 import com.example.weatherforecast.fragments.main.models.ErrorState
+import com.example.weatherforecast.fragments.main.models.GetSavedLocationsList
 import com.example.weatherforecast.fragments.main.models.GetWeather
 import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
 import com.example.weatherforecast.fragments.main.models.MainScreenEvents
@@ -34,8 +36,8 @@ class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
     private val getWeatherDataUseCase: GetWeatherDataUseCase,
     private val getLocationTimeUseCase: GetLocationTimeUseCase,
-    private val getUnsplashImageByCityNameUseCase: GetUnsplashImageByCityNameUseCase
-
+    private val getUnsplashImageByCityNameUseCase: GetUnsplashImageByCityNameUseCase,
+    private val getSavedLocationsListUseCase: GetSavedLocationsListUseCase
 ) : ViewModel() {
 
     private var locationTimeJob: Job? = null
@@ -46,6 +48,7 @@ class MainViewModel @Inject constructor(
     private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
     private val _weather = MutableStateFlow<WeatherComponents>(WeatherComponents())
     private val _time = MutableStateFlow<String?>("0:00")
+    private val _citiesList = MutableStateFlow<ArrayList<SearchedCity>>(ArrayList())
     private val _imageForLocation =
         MutableStateFlow<ImageUrl>("")
 
@@ -63,6 +66,9 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
+        viewModelScope.launch {
+            getSavedLocationList()
+        }
         updateState()
     }
 
@@ -75,6 +81,14 @@ class MainViewModel @Inject constructor(
             is GetWeather -> {
                 getDataBySearchedCityLocation(event.city)
             }
+
+            is GetSavedLocationsList -> {
+                viewModelScope.launch {
+                    getSavedLocationList()
+                }
+
+            }
+
         }
     }
 
@@ -143,7 +157,19 @@ class MainViewModel @Inject constructor(
                     }
                 }
             }
+            launch {
+                _citiesList.collectLatest { cities ->
+                    _mainScreenState.update {
+                        it.copy(cities = cities)
+                    }
+                }
+            }
         }
+    }
+
+    private suspend fun getSavedLocationList() {
+        val citiesList = getSavedLocationsListUseCase.invoke()
+        _citiesList.emit(citiesList)
     }
 
     private fun getDataByCurrentUserLocation() {

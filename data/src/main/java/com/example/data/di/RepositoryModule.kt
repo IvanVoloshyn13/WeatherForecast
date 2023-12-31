@@ -1,12 +1,14 @@
 package com.example.data.di
 
 import com.example.data.location.FusedLocationProviderImpl
+import com.example.data.repository.mainscreen.GetSavedLocationImpl
 import com.example.data.repository.mainscreen.LocationTimeRepositoryImpl
 import com.example.data.repository.mainscreen.UnsplashImageRepoImpl
 import com.example.data.repository.mainscreen.WeatherDataRepositoryImpl
-import com.example.data.repository.searchscreen.LocalDatabaseOperationImpl
+import com.example.data.repository.searchscreen.SaveCityImpl
 import com.example.data.repository.searchscreen.SearchCityRepoImpl
 import com.example.domain.location.FusedLocationProvider
+import com.example.domain.repository.main.GetSavedLocationRepository
 import com.example.domain.repository.main.LocationTimeRepository
 import com.example.domain.repository.main.UnsplashImageRepository
 import com.example.domain.repository.main.WeatherDataRepository
@@ -39,6 +41,9 @@ interface RepositoryModule {
     fun provideSearchCityRepository(searchCity: SearchCityRepoImpl): SearchCityRepo
 
     @Binds
-    fun provideSaveCityRepo(localDatabaseOperationImpl: LocalDatabaseOperationImpl): SaveCityRepo
+    fun provideSaveCityRepo(saveCityImpl: SaveCityImpl): SaveCityRepo
+
+    @Binds
+    fun bindGetSavedLocationRepo(getSavedLocationImpl: GetSavedLocationImpl): GetSavedLocationRepository
 
 }
