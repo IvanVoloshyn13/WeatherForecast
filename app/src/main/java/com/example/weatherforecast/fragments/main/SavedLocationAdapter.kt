@@ -10,13 +10,10 @@ import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.ItemCitiesBinding
 
 class SavedLocationAdapter(private val listener: OnCityClickListener) :
-    RecyclerView.Adapter<SavedLocationAdapter.DailyViewHolder>(), View.OnClickListener {
+    RecyclerView.Adapter<SavedLocationAdapter.CitiesItemViewHolde>(), View.OnClickListener {
     private var citiesList = ArrayList<SearchedCity>()
 
-    //TODO delete when state for show items will be setup
-    private var limit = 4
-
-    inner class DailyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
+    inner class CitiesItemViewHolde(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val binding = ItemCitiesBinding.bind(itemView)
         fun bind(data: SearchedCity) {
             binding.apply {
@@ -35,18 +32,18 @@ class SavedLocationAdapter(private val listener: OnCityClickListener) :
         listener.onClick(city)
     }
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DailyViewHolder {
-        return DailyViewHolder(
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): CitiesItemViewHolde {
+        return CitiesItemViewHolde(
             LayoutInflater.from(parent.context)
                 .inflate(R.layout.item_cities, parent, false)
         )
     }
 
     override fun getItemCount(): Int {
-        return if (citiesList.size > limit) limit else citiesList.size
+        return  citiesList.size
     }
 
-    override fun onBindViewHolder(holder: DailyViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: CitiesItemViewHolde, position: Int) {
         val city = citiesList[position]
         holder.bind(city)
         holder.itemView.tag = city
@@ -57,14 +54,6 @@ class SavedLocationAdapter(private val listener: OnCityClickListener) :
         citiesList.clear()
         citiesList.addAll(list)
         notifyDataSetChanged() //TODO() setup this method with more specific change event if it have sense
-    }
-
-    //TODO rewrite this logig in viewModel using state for adapter
-    fun showMore(list: List<SearchedCity>) {
-        limit = 15
-        citiesList.clear()
-        citiesList.addAll(list)
-        notifyDataSetChanged()
     }
 
 }

@@ -7,6 +7,7 @@ import com.example.domain.models.mainscreen.location.CurrentUserLocation
 import com.example.domain.models.mainscreen.unsplash.ImageUrl
 import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.models.searchscreen.SearchedCity
+import com.example.domain.repository.search.CitiesList
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetSavedLocationsListUseCase
@@ -19,8 +20,12 @@ import com.example.weatherforecast.fragments.main.models.GetWeather
 import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
 import com.example.weatherforecast.fragments.main.models.MainScreenEvents
 import com.example.weatherforecast.fragments.main.models.MainScreenState
+import com.example.weatherforecast.fragments.main.models.ShowLess
+import com.example.weatherforecast.fragments.main.models.ShowMore
+import com.example.weatherforecast.fragments.main.models.ShowMoreLess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -42,6 +47,8 @@ class MainViewModel @Inject constructor(
 
     private var locationTimeJob: Job? = null
 
+    private val savedCityList: CitiesList = ArrayList()
+
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
@@ -49,6 +56,7 @@ class MainViewModel @Inject constructor(
     private val _weather = MutableStateFlow<WeatherComponents>(WeatherComponents())
     private val _time = MutableStateFlow<String?>("0:00")
     private val _citiesList = MutableStateFlow<ArrayList<SearchedCity>>(ArrayList())
+    private val _showMoreLessState = MutableStateFlow<ShowMoreLess>(ShowMoreLess.Hide)
     private val _imageForLocation =
         MutableStateFlow<ImageUrl>("")
 
@@ -66,10 +74,11 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             getSavedLocationList()
         }
         updateState()
+        showMoreLessState()
     }
 
     fun setEvent(event: MainScreenEvents) {
@@ -83,13 +92,46 @@ class MainViewModel @Inject constructor(
             }
 
             is GetSavedLocationsList -> {
-                viewModelScope.launch {
+                viewModelScope.launch(Dispatchers.IO) {
                     getSavedLocationList()
                 }
-
             }
 
+            is ShowMore -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    onShowMoreCitiesPress()
+                }
+            }
+
+            is ShowLess -> {
+                viewModelScope.launch(Dispatchers.IO) {
+                    onShowLessCitiesPress()
+                }
+            }
         }
+    }
+
+    private fun showMoreLessState() {
+        viewModelScope.launch {
+            _citiesList.collectLatest { citiesList ->
+                if (citiesList.size <= 3) {
+                    _showMoreLessState.emit(ShowMoreLess.Hide)
+                } else if (citiesList.size >= 4 && _showMoreLessState.value != ShowMoreLess.ShowMore) {
+                    _showMoreLessState.emit(ShowMoreLess.ShowMore)
+                } else {
+                    _showMoreLessState.emit(ShowMoreLess.ShowLess)
+                }
+            }
+        }
+    }
+
+    private suspend fun onShowMoreCitiesPress() {
+        val citiesList = getSavedLocationsListUseCase.invoke()
+        _citiesList.emit(citiesList)
+    }
+
+    private suspend fun onShowLessCitiesPress() {
+        getSavedLocationList()
     }
 
     private fun updateState() {
@@ -164,12 +206,25 @@ class MainViewModel @Inject constructor(
                     }
                 }
             }
+            launch {
+                _showMoreLessState.collectLatest { showMoreLess ->
+                    _mainScreenState.update {
+                        it.copy(showMoreLess = showMoreLess)
+                    }
+
+                }
+            }
         }
     }
 
     private suspend fun getSavedLocationList() {
         val citiesList = getSavedLocationsListUseCase.invoke()
-        _citiesList.emit(citiesList)
+        if (citiesList.size > 4) {
+            val trimList = citiesList.dropLast(citiesList.size - 4)
+            _citiesList.emit(trimList as ArrayList<SearchedCity>)
+        } else {
+            _citiesList.emit(citiesList)
+        }
     }
 
     private fun getDataByCurrentUserLocation() {

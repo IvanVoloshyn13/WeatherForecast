@@ -6,3 +6,5 @@ sealed class MainScreenEvents
 object GetWeatherByCurrentLocation : MainScreenEvents()
 object GetSavedLocationsList : MainScreenEvents()
 class GetWeather(val city: SearchedCity) : MainScreenEvents()
+object ShowMore : MainScreenEvents()
+object ShowLess : MainScreenEvents()
