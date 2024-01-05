@@ -31,6 +31,9 @@ import com.example.weatherforecast.databinding.HeaderLayoutBinding
 import com.example.weatherforecast.fragments.main.models.GetSavedLocationsList
 import com.example.weatherforecast.fragments.main.models.GetWeather
 import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
+import com.example.weatherforecast.fragments.main.models.ShowLess
+import com.example.weatherforecast.fragments.main.models.ShowMore
+import com.example.weatherforecast.fragments.main.models.ShowMoreLess
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineStart
@@ -141,9 +144,23 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 savedLocationAdapter.submitList(state.cities)
                 hourlyAdapter.submitList(state.hourlyForecast as List<HourlyForecast>)
                 //TODO make it in recycler like element
-                headerBinding.bttShowNext.setOnClickListener {
-                    savedLocationAdapter.showMore(state.cities as List<SearchedCity>)
+                when (state.showMoreLess) {
+                    is ShowMoreLess.ShowMore -> {
+                        headerBinding.bttShowLess.visibility = View.GONE
+                        headerBinding.bttShowMore.visibility = View.VISIBLE
+                    }
+
+                    is ShowMoreLess.ShowLess -> {
+                        headerBinding.bttShowLess.visibility = View.VISIBLE
+                        headerBinding.bttShowMore.visibility = View.GONE
+                    }
+
+                    is ShowMoreLess.Hide -> {
+                        headerBinding.bttShowLess.visibility = View.GONE
+                        headerBinding.bttShowMore.visibility = View.GONE
+                    }
                 }
+
             }
 
         }
@@ -164,6 +181,14 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         headerBinding.currentLocation.cityLayout.setOnClickListener {
             viewModel.setEvent(GetWeatherByCurrentLocation)
             drawerLayout.close()
+        }
+
+        headerBinding.bttShowMore.setOnClickListener {
+            viewModel.setEvent(ShowMore)
+        }
+
+        headerBinding.bttShowLess.setOnClickListener {
+            viewModel.setEvent(ShowLess)
         }
 
 

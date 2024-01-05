@@ -34,6 +34,7 @@
 
     </LinearLayout>
 
+
     <View
         android:layout_width="match_parent"
         android:layout_height="1dp"
@@ -54,16 +55,70 @@
 
     </androidx.recyclerview.widget.RecyclerView>
 
-    <TextView
-        android:id="@+id/btt_show_next"
+    <LinearLayout
+        android:id="@+id/btt_show_more"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="18dp"
-        android:layout_marginTop="12dp"
-        android:text="@string/show_next"
-        android:textAppearance="@style/TextAppearance.WeatherForecast.MenuItem"
-        android:textSize="20sp">
-    </TextView>
+        android:layout_height="48dp"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/marginStandart"
+            android:src="@drawable/ic_more_horiz" />
+
+        <TextView
+            android:id="@+id/tv_show_more"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/marginSmall"
+            android:text="@string/show_more"
+            android:textAppearance="@style/TextAppearance.WeatherForecast.MenuItem"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="38dp"
+            android:src="@drawable/ic_expand_more" />
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/btt_show_less"
+        android:layout_width="match_parent"
+        android:layout_height="48dp"
+        android:visibility="gone"
+        android:orientation="horizontal">
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/marginStandart"
+            android:src="@drawable/ic_more_horiz" />
+
+        <TextView
+            android:id="@+id/tv_show_more_or_less"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="@dimen/marginSmall"
+            android:text="@string/show_less"
+            android:textAppearance="@style/TextAppearance.WeatherForecast.MenuItem"
+            android:textSize="18sp" />
+
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_vertical"
+            android:layout_marginStart="38dp"
+            android:src="@drawable/ic_expand_less" />
+
+    </LinearLayout>
 
 
 </LinearLayout>

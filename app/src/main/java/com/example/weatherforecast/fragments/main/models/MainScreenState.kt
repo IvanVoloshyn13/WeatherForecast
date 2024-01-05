@@ -19,6 +19,7 @@ data class MainScreenState(
     val gpsProviderError: ErrorState.GpsProviderError? = null,
     val weatherDataError: ErrorState.WeatherDataError? = null,
     val imageLoadingError: ErrorState.ImageLoadingError? = null,
+    val showMoreLess: ShowMoreLess = ShowMoreLess.Hide
 )
 
 sealed class ErrorState {
@@ -26,6 +27,12 @@ sealed class ErrorState {
     class GpsProviderError(val message: String = "", val e: Exception? = null) : ErrorState()
     class WeatherDataError(val message: String = "", val e: Exception? = null) : ErrorState()
     class ImageLoadingError(val message: String = "", val e: Exception? = null) : ErrorState()
+}
+
+sealed class ShowMoreLess {
+    object ShowMore : ShowMoreLess()
+    object ShowLess : ShowMoreLess()
+    object Hide : ShowMoreLess()
 }
 
 
