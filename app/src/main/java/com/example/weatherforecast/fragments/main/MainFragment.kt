@@ -21,6 +21,7 @@ import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.example.domain.models.mainscreen.weather.DailyForecast
 import com.example.domain.models.mainscreen.weather.HourlyForecast
+import com.example.domain.models.mainscreen.weather.MainWeatherInfo
 import com.example.domain.models.searchscreen.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.connectivity.GpsStatus
@@ -31,6 +32,7 @@ import com.example.weatherforecast.databinding.HeaderLayoutBinding
 import com.example.weatherforecast.fragments.main.models.GetSavedLocationsList
 import com.example.weatherforecast.fragments.main.models.GetWeather
 import com.example.weatherforecast.fragments.main.models.GetWeatherByCurrentLocation
+import com.example.weatherforecast.fragments.main.models.MainScreenState
 import com.example.weatherforecast.fragments.main.models.ShowLess
 import com.example.weatherforecast.fragments.main.models.ShowMore
 import com.example.weatherforecast.fragments.main.models.ShowMoreLess
@@ -57,6 +59,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
+
     @Suppress("DEPRECATION")
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -69,8 +72,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         drawerLayout = binding.mainDrawer
         val header = binding.mainNavView.getHeaderView(0)
         headerBinding = HeaderLayoutBinding.bind(header)
-
-
 
         setFragmentResultListener("city") { _, bundle ->
             val result = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
@@ -108,6 +109,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         navigationView.setNavigationItemSelectedListener(this)
         initHourlyRecycler()
         initDailyRecycler()
+        initSavedLocationsAdapter()
     }
 
     override fun onStart() {
@@ -115,19 +117,11 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         observeConnectivityStatus()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
+                updateMainWeatherWidget(state.mainWeatherInfo)
+                updateWidgetForecast(state)
+                updateShowMoreLessLocationState(state = state.showMoreLess)
                 with(binding) {
                     with(state) {
-                        with(mainWeatherWidget) {
-                            tvCurrentTemp.text =
-                                mainWeatherInfo.currentTemperature.toString()
-                            tvMaxTemp.text =
-                                mainWeatherInfo.maxTemperature.toString()
-                            tvMinTemp.text =
-                                mainWeatherInfo.minTemperature.toString()
-                            tvWeatherTypeDesc.text =
-                                mainWeatherInfo.weatherType.weatherType
-                            ivWeatherTypeIcon.setImageResource(mainWeatherInfo.weatherType.weatherIcon)
-                        }
                         with(toolbar) {
                             tvCurrentTime.text = time
                             tvToolbarTitle.text = location
@@ -139,44 +133,60 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                         }
                     }
                 }
-
-                dailyAdapter.submitList(state.dailyForecast as List<DailyForecast>)
                 savedLocationAdapter.submitList(state.cities)
-                hourlyAdapter.submitList(state.hourlyForecast as List<HourlyForecast>)
-                //TODO make it in recycler like element
-                when (state.showMoreLess) {
-                    is ShowMoreLess.ShowMore -> {
-                        headerBinding.bttShowLess.visibility = View.GONE
-                        headerBinding.bttShowMore.visibility = View.VISIBLE
-                    }
+            }
+        }
+    }
 
-                    is ShowMoreLess.ShowLess -> {
-                        headerBinding.bttShowLess.visibility = View.VISIBLE
-                        headerBinding.bttShowMore.visibility = View.GONE
-                    }
-
-                    is ShowMoreLess.Hide -> {
-                        headerBinding.bttShowLess.visibility = View.GONE
-                        headerBinding.bttShowMore.visibility = View.GONE
-                    }
-                }
-
+    private fun updateShowMoreLessLocationState(state: ShowMoreLess) {
+        when (state) {
+            is ShowMoreLess.ShowMore -> {
+                headerBinding.bttShowLess.visibility = View.GONE
+                headerBinding.bttShowMore.visibility = View.VISIBLE
             }
 
+            is ShowMoreLess.ShowLess -> {
+                headerBinding.bttShowLess.visibility = View.VISIBLE
+                headerBinding.bttShowMore.visibility = View.GONE
+            }
+
+            is ShowMoreLess.Hide -> {
+                headerBinding.bttShowLess.visibility = View.GONE
+                headerBinding.bttShowMore.visibility = View.GONE
+            }
         }
-        binding.toolbar.bttAddNewCity.setOnClickListener {
-            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+    }
+
+    private fun updateWidgetForecast(state: MainScreenState) {
+        dailyAdapter.submitList(state.dailyForecast as List<DailyForecast>)
+        hourlyAdapter.submitList(state.hourlyForecast as List<HourlyForecast>)
+    }
+
+    private fun updateMainWeatherWidget(state: MainWeatherInfo) {
+        binding.mainWeatherWidget.apply {
+            tvCurrentTemp.text =
+                state.currentTemperature.toString()
+            tvMaxTemp.text =
+                state.maxTemperature.toString()
+            tvMinTemp.text =
+                state.minTemperature.toString()
+            tvWeatherTypeDesc.text =
+                state.weatherType.weatherType
+            ivWeatherTypeIcon.setImageResource(state.weatherType.weatherIcon)
         }
 
     }
 
     override fun onResume() {
         super.onResume()
+
+        binding.toolbar.bttAddNewCity.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+        }
+
         binding.toolbar.mainToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
         }
-        val rv = headerBinding.rvCities
-        rv.adapter = savedLocationAdapter
 
         headerBinding.currentLocation.cityLayout.setOnClickListener {
             viewModel.setEvent(GetWeatherByCurrentLocation)
@@ -193,7 +203,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
 
     }
-
 
     private fun observeConnectivityStatus() {
         if (activity != null && activity is UpdateConnectivityStatus) {
@@ -287,6 +296,11 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 this@MainFragment.requireContext(),
                 RecyclerView.VERTICAL, false
             )
+    }
+
+    private fun initSavedLocationsAdapter() {
+        val rv = headerBinding.rvCities
+        rv.adapter = savedLocationAdapter
     }
 
     override fun onClick(city: SearchedCity) {
