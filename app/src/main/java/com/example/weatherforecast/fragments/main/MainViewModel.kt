@@ -47,8 +47,6 @@ class MainViewModel @Inject constructor(
 
     private var locationTimeJob: Job? = null
 
-    private val savedCityList: CitiesList = ArrayList()
-
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
