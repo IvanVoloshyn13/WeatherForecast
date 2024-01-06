@@ -4,10 +4,8 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.domain.models.mainscreen.location.CurrentUserLocation
-import com.example.domain.models.mainscreen.unsplash.ImageUrl
 import com.example.domain.models.mainscreen.weather.WeatherComponents
 import com.example.domain.models.searchscreen.SearchedCity
-import com.example.domain.repository.search.CitiesList
 import com.example.domain.usecase.mainscreen.GetCurrentUserLocationUseCase
 import com.example.domain.usecase.mainscreen.GetLocationTimeUseCase
 import com.example.domain.usecase.mainscreen.GetSavedLocationsListUseCase
@@ -50,21 +48,6 @@ class MainViewModel @Inject constructor(
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
-    private val _location = MutableStateFlow<CurrentUserLocation>(CurrentUserLocation.DEFAULT)
-    private val _weather = MutableStateFlow<WeatherComponents>(WeatherComponents())
-    private val _time = MutableStateFlow<String?>("0:00")
-    private val _citiesList = MutableStateFlow<ArrayList<SearchedCity>>(ArrayList())
-    private val _showMoreLessState = MutableStateFlow<ShowMoreLess>(ShowMoreLess.Hide)
-    private val _imageForLocation =
-        MutableStateFlow<ImageUrl>("")
-
-    private val _imageLoadingError =
-        MutableStateFlow<ErrorState.ImageLoadingError?>(null)
-    private val _gpsProviderError =
-        MutableStateFlow<ErrorState.GpsProviderError?>(null)
-    private val _weatherDataError =
-        MutableStateFlow<ErrorState.WeatherDataError?>(null)
-
     private val _mainScreenState =
         MutableStateFlow<MainScreenState>(
             MainScreenState()
@@ -75,8 +58,6 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch(Dispatchers.IO) {
             getSavedLocationList()
         }
-        updateState()
-        showMoreLessState()
     }
 
     fun setEvent(event: MainScreenEvents) {
@@ -109,122 +90,6 @@ class MainViewModel @Inject constructor(
         }
     }
 
-    private fun showMoreLessState() {
-        viewModelScope.launch {
-            _citiesList.collectLatest { citiesList ->
-                if (citiesList.size <= 3) {
-                    _showMoreLessState.emit(ShowMoreLess.Hide)
-                } else if (citiesList.size >= 4 && _showMoreLessState.value != ShowMoreLess.ShowMore) {
-                    _showMoreLessState.emit(ShowMoreLess.ShowMore)
-                } else {
-                    _showMoreLessState.emit(ShowMoreLess.ShowLess)
-                }
-            }
-        }
-    }
-
-    private suspend fun onShowMoreCitiesPress() {
-        val citiesList = getSavedLocationsListUseCase.invoke()
-        _citiesList.emit(citiesList)
-    }
-
-    private suspend fun onShowLessCitiesPress() {
-        getSavedLocationList()
-    }
-
-    private fun updateState() {
-        with(viewModelScope) {
-            launch {
-                _location.collectLatest { location ->
-                    _mainScreenState.update {
-                        it.copy(
-                            location = location.city
-                        )
-                    }
-                }
-            }
-            launch {
-                _weather.collectLatest { weatherComponents ->
-                    _mainScreenState.update {
-                        it.copy(
-                            mainWeatherInfo = weatherComponents.mainWeatherInfo,
-                            dailyForecast = weatherComponents.dailyForecast,
-                            hourlyForecast = weatherComponents.hourlyForecast,
-                        )
-                    }
-                }
-            }
-            launch {
-                _time.collectLatest { time ->
-                    _mainScreenState.update {
-                        it.copy(
-                            time = time ?: ""
-                        )
-                    }
-                }
-            }
-            launch {
-                _imageForLocation.collectLatest { imageUrl ->
-                    _mainScreenState.update {
-                        it.copy(
-                            currentWeatherLocationImage = imageUrl
-                        )
-                    }
-                }
-            }
-            launch {
-                _gpsProviderError.collectLatest { error ->
-                    _mainScreenState.update {
-                        it.copy(
-                            gpsProviderError = error
-                        )
-                    }
-                }
-            }
-            launch {
-                _imageLoadingError.collectLatest { error ->
-                    _mainScreenState.update {
-                        it.copy(
-                            imageLoadingError = error
-                        )
-                    }
-                }
-            }
-            launch {
-                _weatherDataError.collectLatest { error ->
-                    _mainScreenState.update {
-                        it.copy(weatherDataError = error)
-                    }
-                }
-            }
-            launch {
-                _citiesList.collectLatest { cities ->
-                    _mainScreenState.update {
-                        it.copy(cities = cities)
-                    }
-                }
-            }
-            launch {
-                _showMoreLessState.collectLatest { showMoreLess ->
-                    _mainScreenState.update {
-                        it.copy(showMoreLess = showMoreLess)
-                    }
-
-                }
-            }
-        }
-    }
-
-    private suspend fun getSavedLocationList() {
-        val citiesList = getSavedLocationsListUseCase.invoke()
-        if (citiesList.size > 4) {
-            val trimList = citiesList.dropLast(citiesList.size - 4)
-            _citiesList.emit(trimList as ArrayList<SearchedCity>)
-        } else {
-            _citiesList.emit(citiesList)
-        }
-    }
-
     private fun getDataByCurrentUserLocation() {
         viewModelScope.launch(exceptionHandler) {
             val location = getCurrentUserLocation()
@@ -251,14 +116,11 @@ class MainViewModel @Inject constructor(
 
     private fun getDataBySearchedCityLocation(city: SearchedCity) {
         viewModelScope.launch {
-            _location.emit(
-                CurrentUserLocation(
-                    latitude = city.latitude,
-                    longitude = city.longitude,
-                    city = city.cityName,
-                    timeZoneID = city.timezone
+            _mainScreenState.update {
+                it.copy(
+                    location = city.cityName
                 )
-            )
+            }
             getWeatherByLocation(city.latitude, city.longitude)
             getCityImage(city.cityName)
             if (locationTimeJob == null) {
@@ -275,53 +137,30 @@ class MainViewModel @Inject constructor(
     private suspend fun getCurrentUserLocation(): CurrentUserLocation? {
         return when (val locationResource = currentUserLocationUseCase.invoke()) {
             is Resource.Success -> {
-                _gpsProviderError.emit(null)
                 locationResource.data.let { currentUserLocation ->
-                    _location.emit(
-                        CurrentUserLocation(
-                            latitude = currentUserLocation.latitude,
-                            longitude = currentUserLocation.longitude,
-                            city = currentUserLocation.city,
-                            timeZoneID = currentUserLocation.timeZoneID
+                    _mainScreenState.update {
+                        it.copy(
+                            location = currentUserLocation.city,
+                            gpsProviderError = null
                         )
-                    )
+                    }
                 }
                 locationResource.data
             }
 
             is Resource.Error -> {
-                _location.emit(CurrentUserLocation.DEFAULT)
                 locationResource.message?.let { message ->
-                    _gpsProviderError.emit(ErrorState.GpsProviderError(message = message))
+                    _mainScreenState.update {
+                        it.copy(
+                            location = CurrentUserLocation.DEFAULT.city,
+                            gpsProviderError = ErrorState.GpsProviderError(message = message)
+                        )
+                    }
                 }
                 null
             }
         }
     }
-
-
-    private suspend fun getCityImage(cityName: String) {
-        val cityResource = getUnsplashImageByCityNameUseCase.invoke(cityName)
-        when (cityResource) {
-            is Resource.Success -> {
-                _imageLoadingError.emit(null)
-                if (cityResource.data.cityImageUrl.isNotEmpty()) {
-                    _imageForLocation.emit(cityResource.data.cityImageUrl)
-                }
-            }
-
-            is Resource.Error -> {
-                _imageForLocation.emit("")
-                _imageLoadingError.emit(
-                    ErrorState.ImageLoadingError(
-                        message = cityResource.message ?: "Cant load data",  //TODO()
-                        e = cityResource.e
-                    )
-                )
-            }
-        }
-    }
-
 
     private suspend fun getWeatherByLocation(latitude: Double, longitude: Double): String? {
         val weatherResource = getWeatherDataUseCase.invoke(
@@ -330,42 +169,111 @@ class MainViewModel @Inject constructor(
         )
         return when (weatherResource) {
             is Resource.Success -> {
-                _weatherDataError.emit(null)
                 weatherResource.data.let { weatherData ->
                     val dailyForecast = weatherData.dailyForecast
                     val hourlyForecast = weatherData.hourlyForecast
                     val mainWeatherInfo = weatherData.mainWeatherInfo
-                    val timeZoneId = weatherData.timezone
-
-                    _weather.emit(
-                        WeatherComponents(
+                    // val timeZoneId = weatherData.timezone
+                    _mainScreenState.update {
+                        it.copy(
                             mainWeatherInfo = mainWeatherInfo,
-                            hourlyForecast = hourlyForecast,
                             dailyForecast = dailyForecast,
-                            timezone = timeZoneId,
+                            hourlyForecast = hourlyForecast,
+                            weatherDataError = null
                         )
-                    )
+                    }
                 }
                 weatherResource.data.timezone
             }
 
             is Resource.Error -> {
                 weatherResource.message?.let { message ->
-                    _weatherDataError.value =
-                        ErrorState.WeatherDataError(message = message, e = weatherResource.e)
+                    _mainScreenState.update {
+                        it.copy(
+                            mainWeatherInfo = WeatherComponents().mainWeatherInfo,
+                            dailyForecast = WeatherComponents().dailyForecast,
+                            hourlyForecast = WeatherComponents().hourlyForecast,
+                            weatherDataError = ErrorState.WeatherDataError(
+                                message = message,
+                                e = weatherResource.e
+                            )
+                        )
+                    }
                 }
-                _weather.value = WeatherComponents()
                 ""
+            }
+        }
+    }
+
+    private suspend fun getCityImage(cityName: String) {
+        val cityResource = getUnsplashImageByCityNameUseCase.invoke(cityName)
+        when (cityResource) {
+            is Resource.Success -> {
+                if (cityResource.data.cityImageUrl.isNotEmpty()) {
+                    _mainScreenState.update {
+                        it.copy(
+                            currentWeatherLocationImage = cityResource.data.cityImageUrl,
+                            imageLoadingError = null
+                        )
+                    }
+                }
+            }
+
+            is Resource.Error -> {
+                _mainScreenState.update {
+                    it.copy(
+                        currentWeatherLocationImage = "",
+                        imageLoadingError = ErrorState.ImageLoadingError(
+                            message = cityResource.message ?: "Cant load data",  //TODO()
+                            e = cityResource.e
+                        )
+                    )
+                }
+            }
+        }
+    }
+
+    private suspend fun getSavedLocationList() {
+        val citiesList = getSavedLocationsListUseCase.invoke()
+        if (citiesList.size > 4) {
+            val trimList = citiesList.dropLast(citiesList.size - 4)
+            _mainScreenState.update {
+                it.copy(
+                    cities = trimList as ArrayList<SearchedCity>,
+                    showMoreLess = ShowMoreLess.ShowMore
+                )
+            }
+        } else {
+            _mainScreenState.update {
+                it.copy(
+                    cities = citiesList,
+                    showMoreLess = ShowMoreLess.Hide
+                )
             }
         }
     }
 
     private fun getTimeForLocation(timeZoneId: String) {
         locationTimeJob = viewModelScope.launch {
-            getLocationTimeUseCase.invoke(timeZoneId, true).cancellable().collectLatest {
-                _time.emit(it)
+            getLocationTimeUseCase.invoke(timeZoneId, true).cancellable().collectLatest { time ->
+                _mainScreenState.update {
+                    it.copy(
+                        time = time ?: ""
+                    )
+                }
             }
         }
+    }
+
+    private suspend fun onShowMoreCitiesPress() {
+        val citiesList = getSavedLocationsListUseCase.invoke()
+        _mainScreenState.update {
+            it.copy(cities = citiesList, showMoreLess = ShowMoreLess.ShowLess)
+        }
+    }
+
+    private suspend fun onShowLessCitiesPress() {
+        getSavedLocationList()
     }
 
     private suspend fun stopTimeObserve() {
