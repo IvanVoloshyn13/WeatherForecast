@@ -1,37 +1,12 @@
 plugins {
-    id 'com.android.library'
-    id 'org.jetbrains.kotlin.android'
-    id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.jvm'
 }
-
-android {
-    namespace 'com.example.domain'
-    compileSdk 34
-
-    defaultConfig {
-        minSdk 24
-        targetSdk 34
-        testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
-        consumerProguardFiles "consumer-rules.pro"
-    }
-
-    buildTypes {
-        release {
-            minifyEnabled false
-            proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-    }
-
-    kotlinOptions {
-        jvmTarget = '1.8' // Set the JVM version to match your Java version
-    }
-
     java {
         toolchain {
             languageVersion = JavaLanguageVersion.of(17)
         }
     }
-}
+
 
 dependencies {
     implementation "org.jetbrains.kotlinx:kotlinx-coroutines-core:$kotlinx_coroutines_version"

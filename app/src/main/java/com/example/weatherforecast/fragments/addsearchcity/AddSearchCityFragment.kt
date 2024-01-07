@@ -13,7 +13,7 @@ import androidx.fragment.app.setFragmentResult
 import androidx.hilt.navigation.fragment.hiltNavGraphViewModels
 import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import com.example.domain.models.searchscreen.SearchedCity
+import com.example.domain.models.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentCitySearchBinding
 import dagger.hilt.android.AndroidEntryPoint
@@ -28,7 +28,7 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
     private val searchDelay: Long = 500
-    private lateinit var adapter: SearchedCitiesAdapter
+    private lateinit var searchedAdapter: SearchedCitiesAdapter
     private lateinit var onBackPressed: OnBackPressedCallback
 
     override fun onAttach(context: Context) {
@@ -51,7 +51,7 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
             setIconifiedByDefault(false)
             queryHint = getString(R.string.please_enter_city_name)
         }
-        adapter = SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
+        searchedAdapter = SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
         return binding.root
     }
 
@@ -59,7 +59,7 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
         super.onViewCreated(view, savedInstanceState)
 
         val recycler = binding.rvCity
-        recycler.adapter = adapter
+        recycler.adapter = searchedAdapter
         binding.searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
             override fun onQueryTextSubmit(query: String?): Boolean {
                 query?.let {
@@ -88,7 +88,7 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
         })
         lifecycleScope.launch {
             searchViewModel.cities.collectLatest {
-                adapter.submitList(it)
+                searchedAdapter.submitList1(it)
             }
         }
 
@@ -102,7 +102,7 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
 
     override fun onItemClick(city: SearchedCity) {
         searchViewModel.saveCity(city)
-        setFragmentResult("city", bundleOf("bundle_key" to city))
+        setFragmentResult("cityId", bundleOf("bundle_key" to city.id))
         onBackPressed()
     }
 

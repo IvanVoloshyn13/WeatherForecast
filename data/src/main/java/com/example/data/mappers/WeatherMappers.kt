@@ -1,11 +1,10 @@
 package com.example.data.mappers
 
 import android.annotation.SuppressLint
-import com.example.domain.models.mainscreen.weather.DailyForecast
-import com.example.domain.models.mainscreen.weather.HourlyForecast
-import com.example.domain.models.mainscreen.weather.MainWeatherInfo
-import com.example.domain.models.mainscreen.weather.WeatherComponents
-import com.example.domain.models.mainscreen.weather.WeatherType
+import com.example.domain.models.weather.DailyForecast
+import com.example.domain.models.weather.HourlyForecast
+import com.example.domain.models.weather.MainWeatherInfo
+import com.example.domain.models.weather.WeatherComponents
 import com.example.network.models.weather.WeatherResponse
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -29,13 +28,13 @@ private data class IndexedDailyWeatherData(
 fun WeatherResponse.toHourlyForecast(): Map<Int, List<HourlyForecast>> {
     return hourly.time.mapIndexed { index, time ->
         val currentTemp = hourly.temperature_2m[index]
-        val weatherType = WeatherType.fromWHO(hourly.weathercode[index])
+        val weatherCode = hourly.weathercode[index]
         IndexedHourlyWeatherData(
             index = index,
             data = HourlyForecast(
                 currentDate = LocalDateTime.parse(time, DateTimeFormatter.ISO_LOCAL_DATE_TIME),
                 currentTemp = currentTemp.toInt(),
-                weatherType = weatherType
+                weatherCode = weatherCode
             )
         )
     }.groupBy {
@@ -50,11 +49,11 @@ fun WeatherResponse.toDailyForecast(): Map<Int, List<DailyForecast>> {
         val maxTemperature = daily.temperature_2m_max[index].toInt()
         val minTemperature = daily.temperature_2m_min[index].toInt()
         val dayTime = daily.time.toListOfTheDayWeek()[index]
-        val weatherType = WeatherType.fromWHO(daily.weathercode[index])
+        val weatherCode = daily.weathercode[index]
         IndexedDailyWeatherData(
             index = index,
             data = DailyForecast(
-                weatherType = weatherType,
+                weatherCode = weatherCode,
                 maxTemperature = maxTemperature,
                 minTemperature = minTemperature,
                 dayOfTheWeek = dayTime
@@ -73,7 +72,7 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     val hourlyForecast = toHourlyForecast()
     var todayMaxTemp: Int = 0
     var todayMinTemp: Int = 0
-    var currentHourWeatherType: WeatherType = WeatherType.ClearSky
+    var currentHourWeatherCode: Int = 0
     var currentHourTemp: Int = 0
     dailyForecast[0]?.let {
         todayMaxTemp = it[0].maxTemperature
@@ -86,7 +85,7 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
     }
     if (currentHourWeather != null) {
         currentHourTemp = currentHourWeather.currentTemp
-        currentHourWeatherType = currentHourWeather.weatherType
+        currentHourWeatherCode = currentHourWeather.weatherCode
     }
 
     return WeatherComponents(
@@ -95,7 +94,7 @@ fun WeatherResponse.toWeatherComponents(): WeatherComponents {
         mainWeatherInfo = MainWeatherInfo(
             todayMaxTemp,
             todayMinTemp,
-            currentHourWeatherType,
+            currentHourWeatherCode,
             currentHourTemp
         ),
         timezone = timezone

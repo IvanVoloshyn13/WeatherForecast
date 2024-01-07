@@ -6,14 +6,14 @@ import android.view.ViewGroup
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.example.domain.models.searchscreen.SearchedCity
+import com.example.domain.models.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.ItemSearchCityBinding
 
 class SearchedCitiesAdapter(private val listener: RecyclerViewOnItemClick) :
     ListAdapter<SearchedCity, SearchedCitiesAdapter.CitiesViewHolder>(CitiesDiffUtil()) {
 
-    val citiesList = ArrayList<SearchedCity>()
+   private val citiesList:ArrayList<SearchedCity> = ArrayList<SearchedCity>()
 
     inner class CitiesViewHolder(view: View) : RecyclerView.ViewHolder(view), View.OnClickListener {
         init {
@@ -59,7 +59,7 @@ class SearchedCitiesAdapter(private val listener: RecyclerViewOnItemClick) :
         return citiesList.size
     }
 
-    fun submitList(list: ArrayList<SearchedCity>) {
+    fun submitList1(list: List<SearchedCity>) {
         citiesList.clear()
         citiesList.addAll(list)
         notifyDataSetChanged() //TODO() setup this method with more specific change event
