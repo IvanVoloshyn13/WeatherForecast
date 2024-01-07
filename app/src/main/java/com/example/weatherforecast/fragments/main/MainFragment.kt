@@ -120,18 +120,17 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 updateMainWeatherWidget(state.mainWeatherInfo)
                 updateWidgetForecast(state)
                 updateShowMoreLessLocationState(state = state.showMoreLess)
-                with(binding) {
-                    with(state) {
-                        with(toolbar) {
-                            tvCurrentTime.text = time
-                            tvToolbarTitle.text = location
-                        }
-                        if (currentWeatherLocationImage.isNotEmpty()) {
-                            ivCityImage.load(currentWeatherLocationImage)
-                        } else {
-                            ivCityImage.load(R.drawable.cloud_blue_sky)
-                        }
+                binding.apply {
+                    with(toolbar) {
+                        tvCurrentTime.text = state.time
+                        tvToolbarTitle.text = state.location
                     }
+                    if (state.currentWeatherLocationImage.isNotEmpty()) {
+                        ivCityImage.load(state.currentWeatherLocationImage)
+                    } else {
+                        ivCityImage.load(R.drawable.cloud_blue_sky)
+                    }
+
                 }
                 savedLocationAdapter.submitList(state.cities)
             }
@@ -183,6 +182,12 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         binding.toolbar.bttAddNewCity.setOnClickListener {
             findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
         }
+
+        binding.toolbar.bttAddNewCity.setOnClickListener(object : View.OnClickListener {
+            override fun onClick(v: View?) {
+                findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+            }
+        })
 
         binding.toolbar.mainToolbar.setNavigationOnClickListener {
             drawerLayout.openDrawer(GravityCompat.START)
