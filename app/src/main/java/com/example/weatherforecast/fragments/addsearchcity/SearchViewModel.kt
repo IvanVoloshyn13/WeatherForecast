@@ -3,9 +3,9 @@ package com.example.weatherforecast.fragments.addsearchcity
 import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.domain.models.searchscreen.SearchedCity
-import com.example.domain.usecase.searchscreen.SaveCityModelToLocalDatabaseUseCase
-import com.example.domain.usecase.searchscreen.SearchCityByNameUseCase
+import com.example.domain.models.SearchedCity
+import com.example.domain.usecase.addsearch.SaveCityUseCase
+import com.example.domain.usecase.addsearch.SearchCityByNameUseCase
 import com.example.domain.utils.Resource
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,10 +16,10 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val searchCityByNameUseCase: SearchCityByNameUseCase,
-    private val saveCityModelToLocalDatabaseUseCase: SaveCityModelToLocalDatabaseUseCase
+    private val saveCityUseCase: SaveCityUseCase
 ) : ViewModel() {
 
-    private val _cities: MutableStateFlow<ArrayList<SearchedCity>> =
+    private val _cities: MutableStateFlow<List<SearchedCity>> =
         MutableStateFlow(ArrayList<SearchedCity>())
     val cities = _cities.asStateFlow()
 
@@ -48,7 +48,7 @@ class SearchViewModel @Inject constructor(
 
     fun saveCity(city: SearchedCity) {
         viewModelScope.launch {
-           saveCityModelToLocalDatabaseUseCase.invoke(city)
+           saveCityUseCase.invoke(city)
         }
     }
 }

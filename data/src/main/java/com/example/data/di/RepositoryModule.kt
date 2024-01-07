@@ -1,19 +1,21 @@
 package com.example.data.di
 
 import com.example.data.location.FusedLocationProviderImpl
-import com.example.data.repository.mainscreen.GetSavedLocationImpl
-import com.example.data.repository.mainscreen.LocationTimeRepositoryImpl
-import com.example.data.repository.mainscreen.UnsplashImageRepoImpl
-import com.example.data.repository.mainscreen.WeatherDataRepositoryImpl
-import com.example.data.repository.searchscreen.SaveCityImpl
-import com.example.data.repository.searchscreen.SearchCityRepoImpl
+import com.example.data.repository.searchscreen.SaveCityRepositoryImpl
+import com.example.data.repository.searchscreen.SearchCityRepositoryImpl
+import com.example.data.repository.weatherscreen.GetLocationByIdRepositoryImpl
+import com.example.data.repository.weatherscreen.GetSavedLocationRepositoryImpl
+import com.example.data.repository.weatherscreen.LocationTimeRepositoryImpl
+import com.example.data.repository.weatherscreen.UnsplashImageRepositoryImpl
+import com.example.data.repository.weatherscreen.WeatherDataRepositoryImpl
 import com.example.domain.location.FusedLocationProvider
-import com.example.domain.repository.main.GetSavedLocationRepository
-import com.example.domain.repository.main.LocationTimeRepository
-import com.example.domain.repository.main.UnsplashImageRepository
-import com.example.domain.repository.main.WeatherDataRepository
-import com.example.domain.repository.search.SaveCityRepo
-import com.example.domain.repository.search.SearchCityRepo
+import com.example.domain.repository.search.SaveCityRepository
+import com.example.domain.repository.search.SearchCityRepository
+import com.example.domain.repository.weather.GetLocationByIdRepository
+import com.example.domain.repository.weather.GetSavedLocationRepository
+import com.example.domain.repository.weather.LocationTimeRepository
+import com.example.domain.repository.weather.UnsplashImageRepository
+import com.example.domain.repository.weather.WeatherDataRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -35,15 +37,18 @@ interface RepositoryModule {
     fun bindLocationTime(locationTimeRepository: LocationTimeRepositoryImpl): LocationTimeRepository
 
     @Binds
-    fun provideUnsplashImageRepository(unsplashImageRepo: UnsplashImageRepoImpl): UnsplashImageRepository
+    fun provideUnsplashImageRepository(unsplashImageRepo: UnsplashImageRepositoryImpl): UnsplashImageRepository
 
     @Binds
-    fun provideSearchCityRepository(searchCity: SearchCityRepoImpl): SearchCityRepo
+    fun provideSearchCityRepository(searchCity: SearchCityRepositoryImpl): SearchCityRepository
 
     @Binds
-    fun provideSaveCityRepo(saveCityImpl: SaveCityImpl): SaveCityRepo
+    fun provideSaveCityRepo(saveCityRepositoryImpl: SaveCityRepositoryImpl): SaveCityRepository
 
     @Binds
-    fun bindGetSavedLocationRepo(getSavedLocationImpl: GetSavedLocationImpl): GetSavedLocationRepository
+    fun bindGetSavedLocationRepository(getSavedLocationRepositoryImpl: GetSavedLocationRepositoryImpl): GetSavedLocationRepository
+
+    @Binds
+    fun bindGetLocationByIdRepository(getLocationByIdRepositoryImpl: GetLocationByIdRepositoryImpl): GetLocationByIdRepository
 
 }

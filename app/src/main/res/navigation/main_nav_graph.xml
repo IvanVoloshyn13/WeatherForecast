@@ -8,16 +8,14 @@
     <fragment
         app:route="main"
         android:id="@+id/mainFragment"
-        android:name="com.example.weatherforecast.fragments.main.MainFragment"
+        android:name="com.example.weatherforecast.fragments.weather.MainFragment"
         android:label="MainFragment" >
         <action
             android:id="@+id/action_mainFragment_to_citySearchFragment"
             app:destination="@id/citySearchFragment" />
         <argument
-            app:nullable="true"
-            android:name="city"
-            app:argType="com.example.domain.models.searchscreen.SearchedCity"
-            android:defaultValue="@null"/>
+            android:name="cityId"
+            app:argType="integer" />
     </fragment>
 
     <fragment
@@ -29,8 +27,8 @@
             app:destination="@id/mainFragment" >
 
         <argument
-            android:name="city"
-            app:argType="com.example.domain.models.searchscreen.SearchedCity" />
+            android:name="cityId"
+            app:argType="integer" />
         </action>
     </fragment>
 </navigation>

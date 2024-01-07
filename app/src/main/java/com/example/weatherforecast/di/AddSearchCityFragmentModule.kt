@@ -1,9 +1,9 @@
 package com.example.weatherforecast.di
 
-import com.example.domain.repository.search.SaveCityRepo
-import com.example.domain.repository.search.SearchCityRepo
-import com.example.domain.usecase.searchscreen.SaveCityModelToLocalDatabaseUseCase
-import com.example.domain.usecase.searchscreen.SearchCityByNameUseCase
+import com.example.domain.repository.search.SaveCityRepository
+import com.example.domain.repository.search.SearchCityRepository
+import com.example.domain.usecase.addsearch.SaveCityUseCase
+import com.example.domain.usecase.addsearch.SearchCityByNameUseCase
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,12 +13,12 @@ import dagger.hilt.components.SingletonComponent
 @InstallIn(SingletonComponent::class)
 class AddSearchCityFragmentModule {
     @Provides
-    fun provideSaveCityModelToLocalDatabaseUseCase(saveCityRepo: SaveCityRepo): SaveCityModelToLocalDatabaseUseCase {
-        return SaveCityModelToLocalDatabaseUseCase(saveCityRepo)
+    fun provideSaveCityModelToLocalDatabaseUseCase(saveCityRepository: SaveCityRepository): SaveCityUseCase {
+        return SaveCityUseCase(saveCityRepository)
     }
 
     @Provides
-    fun provideSearchCityByNameUseCase(searchCityRepo: SearchCityRepo): SearchCityByNameUseCase {
-        return SearchCityByNameUseCase(searchCityRepo)
+    fun provideSearchCityByNameUseCase(searchCityRepository: SearchCityRepository): SearchCityByNameUseCase {
+        return SearchCityByNameUseCase(searchCityRepository)
     }
 }

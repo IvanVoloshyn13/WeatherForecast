@@ -1,7 +1,7 @@
 package com.example.network.di
 
-import com.example.network.apiServices.mainscreen.ApiWeatherService
-import com.example.network.apiServices.searchscreen.ApiSearchCityService
+import com.example.network.apiServices.weather.ApiWeatherService
+import com.example.network.apiServices.search.ApiSearchCityService
 import com.example.network.utils.OpenMeteo
 import com.example.network.utils.OpenMeteoApi
 import com.slack.eithernet.ApiResultCallAdapterFactory
