@@ -21,7 +21,7 @@ dependencyResolutionManagement {
 
 rootProject.name = "Weather Forecast"
 include ':app'
-include ':core:http'
-include ':core:network'
+include ':network:http'
+include ':network:retrofit'
 include ':domain'
 include ':data'
