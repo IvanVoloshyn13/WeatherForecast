@@ -36,6 +36,8 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
+const val INITIAL_CITIES_LIST_SIZE = 4
+
 @HiltViewModel
 class MainViewModel @Inject constructor(
     private val currentUserLocationUseCase: GetCurrentUserLocationUseCase,
@@ -255,23 +257,39 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun getSavedLocationList() {
-        val citiesList = getSavedLocationsListUseCase.invoke()
-        if (citiesList.size > 4) {
-            val trimList = citiesList.dropLast(citiesList.size - 4)
-            _mainScreenState.update {
-                it.copy(
-                    cities = trimList as ArrayList<SearchedCity>,
-                    showMoreLess = ShowMoreLess.ShowMore
-                )
+        val citiesResource = getSavedLocationsListUseCase.invoke()
+        when (citiesResource) {
+            is Resource.Success -> {
+                citiesResource.data.let { cities ->
+                    if (cities.size > INITIAL_CITIES_LIST_SIZE) {
+                        val trimList = cities.dropLast(cities.size - INITIAL_CITIES_LIST_SIZE)
+                        _mainScreenState.update {
+                            it.copy(
+                                cities = trimList as ArrayList<SearchedCity>,
+                                showMoreLess = ShowMoreLess.ShowMore
+                            )
+                        }
+                    } else {
+                        _mainScreenState.update {
+                            it.copy(
+                                cities = cities,
+                                showMoreLess = ShowMoreLess.Hide
+                            )
+                        }
+                    }
+                }
             }
-        } else {
-            _mainScreenState.update {
-                it.copy(
-                    cities = citiesList,
-                    showMoreLess = ShowMoreLess.Hide
-                )
+
+            is Resource.Error -> {
+                _mainScreenState.update {
+                    it.copy(
+                        cities = ArrayList(),
+                        showMoreLess = ShowMoreLess.Hide
+                    )
+                }
             }
         }
+
     }
 
     private fun getTimeForLocation(timeZoneId: String) {
@@ -287,10 +305,22 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun onShowMoreCitiesPress() {
-        val citiesList = getSavedLocationsListUseCase.invoke()
-        _mainScreenState.update {
-            it.copy(cities = citiesList, showMoreLess = ShowMoreLess.ShowLess)
+        val citiesResource = getSavedLocationsListUseCase.invoke()
+        when (citiesResource) {
+            is Resource.Success -> {
+                citiesResource.data.let { cities ->
+                    _mainScreenState.update {
+                        it.copy(cities = cities, showMoreLess = ShowMoreLess.ShowLess)
+                    }
+                }
+            }
+            is Resource.Error -> {
+                _mainScreenState.update {
+                    it.copy(cities = ArrayList(), showMoreLess = ShowMoreLess.Hide)
+                }
+            }
         }
+
     }
 
     private suspend fun onShowLessCitiesPress() {
