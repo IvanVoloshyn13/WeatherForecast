@@ -16,6 +16,7 @@ import androidx.navigation.fragment.findNavController
 import com.example.domain.models.SearchedCity
 import com.example.weatherforecast.R
 import com.example.weatherforecast.databinding.FragmentCitySearchBinding
+import com.example.weatherforecast.fragments.viewBinding
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -24,7 +25,7 @@ import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
 class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnItemClick {
-    private val binding by lazy { FragmentCitySearchBinding.inflate(layoutInflater) }
+    private val binding by viewBinding<FragmentCitySearchBinding>()
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
     private val searchDelay: Long = 500
@@ -51,7 +52,8 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
             setIconifiedByDefault(false)
             queryHint = getString(R.string.please_enter_city_name)
         }
-        searchedAdapter = SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
+        searchedAdapter =
+            SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
         return binding.root
     }
 
