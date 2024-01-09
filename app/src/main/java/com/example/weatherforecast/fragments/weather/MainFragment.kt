@@ -1,7 +1,6 @@
 package com.example.weatherforecast.fragments.weather
 
 import android.annotation.SuppressLint
-import android.os.Build
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.MenuItem
@@ -30,6 +29,7 @@ import com.example.weatherforecast.connectivity.NetworkStatus
 import com.example.weatherforecast.connectivity.UpdateConnectivityStatus
 import com.example.weatherforecast.databinding.FragmentMainBinding
 import com.example.weatherforecast.databinding.HeaderLayoutBinding
+import com.example.weatherforecast.fragments.viewBinding
 import com.example.weatherforecast.fragments.weather.models.GetLocationById
 import com.example.weatherforecast.fragments.weather.models.GetSavedLocationsList
 import com.example.weatherforecast.fragments.weather.models.GetWeather
@@ -52,7 +52,7 @@ const val SYSTEM_NAVIGATION_BAR_SIZE = 48
 class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener,
     OnCityClickListener {
 
-    private val binding by lazy { FragmentMainBinding.inflate(layoutInflater) }
+    private val binding by viewBinding<FragmentMainBinding>()
     private lateinit var headerBinding: HeaderLayoutBinding
     private lateinit var hourlyAdapter: HourlyAdapter
     private lateinit var dailyAdapter: DailyAdapter
@@ -61,13 +61,12 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
-
     @Suppress("DEPRECATION")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         hourlyAdapter = HourlyAdapter()
         dailyAdapter = DailyAdapter()
         savedLocationAdapter = SavedLocationAdapter(this)
@@ -76,7 +75,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
         headerBinding = HeaderLayoutBinding.bind(header)
 
         setFragmentResultListener("cityId") { _, bundle ->
-            val cityId = bundle.getInt("bundle_key",)
+            val cityId = bundle.getInt("bundle_key")
             if (cityId != null) {
                 viewModel.setEvent(GetLocationById(cityId))
                 viewModel.setEvent(GetSavedLocationsList)
