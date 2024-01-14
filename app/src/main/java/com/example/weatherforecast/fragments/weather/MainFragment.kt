@@ -1,11 +1,13 @@
 package com.example.weatherforecast.fragments.weather
 
 import android.annotation.SuppressLint
+import android.content.Intent
+import android.net.Uri
 import android.os.Bundle
-import android.view.LayoutInflater
+import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
+import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
 import android.view.MenuItem
 import android.view.View
-import android.view.ViewGroup
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -49,9 +51,9 @@ const val ANDROID_ACTION_BAR = 56
 const val SYSTEM_NAVIGATION_BAR_SIZE = 48
 
 @AndroidEntryPoint
-class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener,
+class MainFragment : Fragment(R.layout.fragment_main),
+    NavigationView.OnNavigationItemSelectedListener,
     OnCityClickListener {
-
     private val binding by viewBinding<FragmentMainBinding>()
     private lateinit var headerBinding: HeaderLayoutBinding
     private lateinit var hourlyAdapter: HourlyAdapter
@@ -61,18 +63,15 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
-    @Suppress("DEPRECATION")
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View {
-        hourlyAdapter = HourlyAdapter()
-        dailyAdapter = DailyAdapter()
-        savedLocationAdapter = SavedLocationAdapter(this)
+    @SuppressLint("SetTextI18n")
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         drawerLayout = binding.mainDrawer
         val header = binding.mainNavView.getHeaderView(0)
         headerBinding = HeaderLayoutBinding.bind(header)
+        hourlyAdapter = HourlyAdapter()
+        dailyAdapter = DailyAdapter()
+        savedLocationAdapter = SavedLocationAdapter(this)
 
         setFragmentResultListener("cityId") { _, bundle ->
             val cityId = bundle.getInt("bundle_key")
@@ -94,24 +93,14 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             screenHeight - ANDROID_STATUS_BAR_SIZE * density.toInt() -
                     ANDROID_ACTION_BAR * density.toInt() - SYSTEM_NAVIGATION_BAR_SIZE * density.toInt() - 220
         binding.mainWeatherWidget.currentWeatherInfoLayout.setPadding(0, viewHeight, 0, 0)
-        return binding.root
 
-
-    }
-
-    @SuppressLint("SetTextI18n")
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
         val navigationView = binding.mainNavView
         navigationView.setNavigationItemSelectedListener(this)
+        observeConnectivityStatus()
         initHourlyRecycler()
         initDailyRecycler()
-        initSavedLocationsAdapter()
-    }
+        initSavedLocationsRecycler()
 
-    override fun onStart() {
-        super.onStart()
-        observeConnectivityStatus()
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
                 updateMainWeatherWidget(state.mainWeatherInfo)
@@ -127,12 +116,45 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                     } else {
                         ivCityImage.load(R.drawable.cloud_blue_sky)
                     }
-
                 }
                 savedLocationAdapter.submitList(state.cities)
             }
         }
+
+        binding.toolbar.bttAddNewCity.setOnClickListener {
+            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
+        }
+
+        binding.toolbar.mainToolbar.setNavigationOnClickListener {
+            drawerLayout.openDrawer(GravityCompat.START)
+        }
+
+        binding.noGpsDialog.bttEnabledLocation.setOnClickListener {
+            showAppSettings()
+        }
+
+        headerBinding.currentLocation.cityLayout.setOnClickListener {
+            viewModel.setEvent(GetWeatherByCurrentLocation)
+            drawerLayout.close()
+        }
+
+        headerBinding.bttShowMore.setOnClickListener {
+            viewModel.setEvent(ShowMore)
+        }
+
+        headerBinding.bttShowLess.setOnClickListener {
+            viewModel.setEvent(ShowLess)
+        }
+
+
     }
+
+
+    private fun showAppSettings() {
+        val intent = Intent(ACTION_LOCATION_SOURCE_SETTINGS)
+        startActivity(intent)
+    }
+
 
     private fun updateShowMoreLessLocationState(state: ShowMoreLess) {
         when (state) {
@@ -170,39 +192,6 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
                 WeatherType.fromWHO(state.weatherCode).weatherType
             ivWeatherTypeIcon.setImageResource(WeatherType.fromWHO(state.weatherCode).weatherIcon)
         }
-
-    }
-
-    override fun onResume() {
-        super.onResume()
-
-        binding.toolbar.bttAddNewCity.setOnClickListener {
-            findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
-        }
-
-        binding.toolbar.bttAddNewCity.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View?) {
-                findNavController().navigate(R.id.action_mainFragment_to_citySearchFragment)
-            }
-        })
-
-        binding.toolbar.mainToolbar.setNavigationOnClickListener {
-            drawerLayout.openDrawer(GravityCompat.START)
-        }
-
-        headerBinding.currentLocation.cityLayout.setOnClickListener {
-            viewModel.setEvent(GetWeatherByCurrentLocation)
-            drawerLayout.close()
-        }
-
-        headerBinding.bttShowMore.setOnClickListener {
-            viewModel.setEvent(ShowMore)
-        }
-
-        headerBinding.bttShowLess.setOnClickListener {
-            viewModel.setEvent(ShowLess)
-        }
-
 
     }
 
@@ -300,7 +289,7 @@ class MainFragment : Fragment(), NavigationView.OnNavigationItemSelectedListener
             )
     }
 
-    private fun initSavedLocationsAdapter() {
+    private fun initSavedLocationsRecycler() {
         val rv = headerBinding.rvCities
         rv.adapter = savedLocationAdapter
     }
