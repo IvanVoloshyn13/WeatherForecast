@@ -24,7 +24,7 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnItemClick {
+class AddSearchCityFragment : Fragment(R.layout.fragment_city_search), SearchedCitiesAdapter.RecyclerViewOnItemClick {
     private val binding by viewBinding<FragmentCitySearchBinding>()
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
@@ -42,11 +42,8 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
         requireActivity().onBackPressedDispatcher.addCallback(this, onBackPressed)
     }
 
-    override fun onCreateView(
-        inflater: LayoutInflater,
-        container: ViewGroup?,
-        savedInstanceState: Bundle?
-    ): View? {
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
         binding.searchView.apply {
             isActivated = true
             setIconifiedByDefault(false)
@@ -54,11 +51,6 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
         }
         searchedAdapter =
             SearchedCitiesAdapter(this as SearchedCitiesAdapter.RecyclerViewOnItemClick)
-        return binding.root
-    }
-
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
 
         val recycler = binding.rvCity
         recycler.adapter = searchedAdapter
@@ -93,8 +85,6 @@ class AddSearchCityFragment : Fragment(), SearchedCitiesAdapter.RecyclerViewOnIt
                 searchedAdapter.submitList1(it)
             }
         }
-
-
     }
 
     private fun onBackPressed() {
