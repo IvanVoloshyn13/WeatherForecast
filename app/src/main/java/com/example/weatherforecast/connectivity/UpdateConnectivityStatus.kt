@@ -1,9 +1,10 @@
 package com.example.weatherforecast.connectivity
 
-import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.Flow
+
 
 interface UpdateConnectivityStatus {
 
-    val gpsStatus: MutableSharedFlow<GpsStatus>
-    val networkStatus: MutableSharedFlow<NetworkStatus>
+    val gpsStatus: Flow<GpsStatus>
+    val networkStatus: Flow<NetworkStatus>
 }

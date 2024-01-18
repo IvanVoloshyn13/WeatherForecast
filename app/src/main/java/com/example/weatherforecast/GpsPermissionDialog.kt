@@ -23,7 +23,7 @@ class GpsPermissionDialog : DialogFragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         binding.bttEnableLocation.setOnClickListener {
-            this@GpsPermissionDialog.dialog!!.cancel()
+            this@GpsPermissionDialog.requireDialog().cancel()
             ActivityCompat.requestPermissions(
                 requireActivity(),
                 arrayOf(
@@ -35,7 +35,7 @@ class GpsPermissionDialog : DialogFragment() {
 
         }
         binding.bttLater.setOnClickListener {
-            dialog!!.cancel()
+            requireDialog().cancel()
         }
     }
 }

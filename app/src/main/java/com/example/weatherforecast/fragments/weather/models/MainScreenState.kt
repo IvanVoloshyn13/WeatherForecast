@@ -8,6 +8,7 @@ import com.example.domain.models.weather.MainWeatherInfo
 
 
 data class MainScreenState(
+    val isLoading: Boolean = false,
     val location: String = "",
     val mainWeatherInfo: MainWeatherInfo = MainWeatherInfo(),
     val hourlyForecast: ArrayList<HourlyForecast>? = ArrayList(),

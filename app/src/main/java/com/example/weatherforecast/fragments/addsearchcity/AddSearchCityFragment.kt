@@ -2,9 +2,7 @@ package com.example.weatherforecast.fragments.addsearchcity
 
 import android.content.Context
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.View
-import android.view.ViewGroup
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.widget.SearchView
 import androidx.core.os.bundleOf
@@ -24,7 +22,8 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @AndroidEntryPoint
-class AddSearchCityFragment : Fragment(R.layout.fragment_city_search), SearchedCitiesAdapter.RecyclerViewOnItemClick {
+class AddSearchCityFragment : Fragment(R.layout.fragment_city_search),
+    SearchedCitiesAdapter.RecyclerViewOnItemClick {
     private val binding by viewBinding<FragmentCitySearchBinding>()
     private val searchViewModel by hiltNavGraphViewModels<SearchViewModel>(R.id.main_nav_graph)
     private var searchJob: Job? = null
@@ -83,6 +82,13 @@ class AddSearchCityFragment : Fragment(R.layout.fragment_city_search), SearchedC
         lifecycleScope.launch {
             searchViewModel.cities.collectLatest {
                 searchedAdapter.submitList1(it)
+            }
+        }
+
+        lifecycleScope.launch {
+            searchViewModel.isLoading.collectLatest { isLoading ->
+                if (isLoading) binding.progressBar.visibility =
+                    View.VISIBLE else binding.progressBar.visibility = View.GONE
             }
         }
     }

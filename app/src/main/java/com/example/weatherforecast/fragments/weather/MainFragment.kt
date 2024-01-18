@@ -2,9 +2,7 @@ package com.example.weatherforecast.fragments.weather
 
 import android.annotation.SuppressLint
 import android.content.Intent
-import android.net.Uri
 import android.os.Bundle
-import android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS
 import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
 import android.view.MenuItem
 import android.view.View
@@ -37,8 +35,8 @@ import com.example.weatherforecast.fragments.weather.models.GetSavedLocationsLis
 import com.example.weatherforecast.fragments.weather.models.GetWeather
 import com.example.weatherforecast.fragments.weather.models.GetWeatherByCurrentLocation
 import com.example.weatherforecast.fragments.weather.models.MainScreenState
-import com.example.weatherforecast.fragments.weather.models.ShowLess
-import com.example.weatherforecast.fragments.weather.models.ShowMore
+import com.example.weatherforecast.fragments.weather.models.ShowLessCities
+import com.example.weatherforecast.fragments.weather.models.ShowMoreCities
 import com.example.weatherforecast.fragments.weather.models.ShowMoreLess
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
@@ -76,8 +74,8 @@ class MainFragment : Fragment(R.layout.fragment_main),
         setFragmentResultListener("cityId") { _, bundle ->
             val cityId = bundle.getInt("bundle_key")
             if (cityId != null) {
-                viewModel.setEvent(GetLocationById(cityId))
-                viewModel.setEvent(GetSavedLocationsList)
+                viewModel.onIntent(GetLocationById(cityId))
+                viewModel.onIntent(GetSavedLocationsList)
             }
         }
 
@@ -116,6 +114,11 @@ class MainFragment : Fragment(R.layout.fragment_main),
                     } else {
                         ivCityImage.load(R.drawable.cloud_blue_sky)
                     }
+                    if (state.isLoading) {
+                        binding.progressBar.visibility = View.VISIBLE
+                    } else {
+                        binding.progressBar.visibility = View.GONE
+                    }
                 }
                 savedLocationAdapter.submitList(state.cities)
             }
@@ -134,16 +137,16 @@ class MainFragment : Fragment(R.layout.fragment_main),
         }
 
         headerBinding.currentLocation.cityLayout.setOnClickListener {
-            viewModel.setEvent(GetWeatherByCurrentLocation)
+            viewModel.onIntent(GetWeatherByCurrentLocation)
             drawerLayout.close()
         }
 
         headerBinding.bttShowMore.setOnClickListener {
-            viewModel.setEvent(ShowMore)
+            viewModel.onIntent(ShowMoreCities)
         }
 
         headerBinding.bttShowLess.setOnClickListener {
-            viewModel.setEvent(ShowLess)
+            viewModel.onIntent(ShowLessCities)
         }
 
 
@@ -196,6 +199,7 @@ class MainFragment : Fragment(R.layout.fragment_main),
     }
 
     private fun observeConnectivityStatus() {
+
         if (activity != null && activity is UpdateConnectivityStatus) {
             val fragmentActivity = activity as UpdateConnectivityStatus
             val networkJob =
@@ -226,7 +230,7 @@ class MainFragment : Fragment(R.layout.fragment_main),
             GpsStatus.Available -> {
                 binding.noGpsDialog.noGpsDialog.visibility = View.GONE
                 binding.mainGroup.visibility = View.VISIBLE
-                viewModel.setEvent(GetWeatherByCurrentLocation)
+                viewModel.onIntent(GetWeatherByCurrentLocation)
             }
         }
     }
@@ -296,16 +300,7 @@ class MainFragment : Fragment(R.layout.fragment_main),
 
     override fun onClick(city: SearchedCity) {
         drawerLayout.close()
-        viewModel.setEvent(GetWeather(city))
+        viewModel.onIntent(GetWeather(city))
     }
 }
 
-
-//        val toggle = ActionBarDrawerToggle(
-//            this@MainFragment.requireActivity(),
-//            drawerLayout,
-//            R.string.open_nav,
-//            R.string.close_nav
-//        )
-//        drawerLayout.addDrawerListener(toggle)
-//        toggle.syncState()
