@@ -23,14 +23,20 @@ class SearchViewModel @Inject constructor(
         MutableStateFlow(ArrayList<SearchedCity>())
     val cities = _cities.asStateFlow()
 
+    private val _isLoading = MutableStateFlow(false)
+    val isLoading = _isLoading.asStateFlow()
+
+
     fun search(query: String) {
         viewModelScope.launch {
+            _isLoading.emit(true)
             if (query.length >= 3) {
                 val list = searchCityByNameUseCase.invoke(query)
                 when (list) {
                     // TODO()
                     is Resource.Success -> {
                         _cities.emit(list.data)
+                        _isLoading.emit(false)
                     }
 
                     is Resource.Error -> {
@@ -48,7 +54,9 @@ class SearchViewModel @Inject constructor(
 
     fun saveCity(city: SearchedCity) {
         viewModelScope.launch {
-           saveCityUseCase.invoke(city)
+            _isLoading.emit(true)
+            saveCityUseCase.invoke(city)
+            _isLoading.emit(false)
         }
     }
 }

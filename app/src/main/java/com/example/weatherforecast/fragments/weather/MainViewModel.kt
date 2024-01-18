@@ -18,14 +18,13 @@ import com.example.weatherforecast.fragments.weather.models.GetLocationById
 import com.example.weatherforecast.fragments.weather.models.GetSavedLocationsList
 import com.example.weatherforecast.fragments.weather.models.GetWeather
 import com.example.weatherforecast.fragments.weather.models.GetWeatherByCurrentLocation
-import com.example.weatherforecast.fragments.weather.models.MainScreenEvents
+import com.example.weatherforecast.fragments.weather.models.MainScreenIntent
 import com.example.weatherforecast.fragments.weather.models.MainScreenState
-import com.example.weatherforecast.fragments.weather.models.ShowLess
-import com.example.weatherforecast.fragments.weather.models.ShowMore
+import com.example.weatherforecast.fragments.weather.models.ShowLessCities
+import com.example.weatherforecast.fragments.weather.models.ShowMoreCities
 import com.example.weatherforecast.fragments.weather.models.ShowMoreLess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -60,42 +59,42 @@ class MainViewModel @Inject constructor(
     val mainScreenState = _mainScreenState.asStateFlow()
 
     init {
-        viewModelScope.launch(Dispatchers.IO) {
+        viewModelScope.launch {
             getSavedLocationList()
         }
     }
 
-    fun setEvent(event: MainScreenEvents) {
-        when (event) {
+    fun onIntent(intent: MainScreenIntent) {
+        when (intent) {
             GetWeatherByCurrentLocation -> {
                 getDataByCurrentUserLocation()
             }
 
             is GetWeather -> {
-                getDataBySearchedCityLocation(event.city)
+                getDataBySearchedCityLocation(intent.city)
             }
 
             is GetLocationById -> {
                 viewModelScope.launch {
-                    getLocationById(event.cityId)
+                    getLocationById(intent.cityId)
                 }
 
             }
 
             is GetSavedLocationsList -> {
-                viewModelScope.launch(Dispatchers.IO) {
+                viewModelScope.launch {
                     getSavedLocationList()
                 }
             }
 
-            is ShowMore -> {
-                viewModelScope.launch(Dispatchers.IO) {
+            is ShowMoreCities -> {
+                viewModelScope.launch {
                     onShowMoreCitiesPress()
                 }
             }
 
-            is ShowLess -> {
-                viewModelScope.launch(Dispatchers.IO) {
+            is ShowLessCities -> {
+                viewModelScope.launch {
                     onShowLessCitiesPress()
                 }
             }
@@ -104,6 +103,9 @@ class MainViewModel @Inject constructor(
 
     private fun getDataByCurrentUserLocation() {
         viewModelScope.launch(exceptionHandler) {
+            _mainScreenState.update {
+                it.copy(isLoading = true)
+            }
             val location = getCurrentUserLocation()
             if (location != null) {
                 val timezoneId =
@@ -122,6 +124,9 @@ class MainViewModel @Inject constructor(
                 }
                 getCityImage(location.city)
             }
+            _mainScreenState.update {
+                it.copy(isLoading = false)
+            }
         }
     }
 
@@ -130,6 +135,7 @@ class MainViewModel @Inject constructor(
         viewModelScope.launch {
             _mainScreenState.update {
                 it.copy(
+                    isLoading = true,
                     location = city.cityName
                 )
             }
@@ -142,6 +148,9 @@ class MainViewModel @Inject constructor(
                 if (locationTimeJob?.isCompleted == true) {
                     getTimeForLocation(timeZoneId = city.timezone)
                 }
+            }
+            _mainScreenState.update {
+                it.copy(isLoading = false)
             }
         }
     }
@@ -158,7 +167,8 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun getCurrentUserLocation(): CurrentUserLocation? {
-        return when (val locationResource = currentUserLocationUseCase.invoke()) {
+        val locationResource = currentUserLocationUseCase.invoke()
+        return when (locationResource) {
             is Resource.Success -> {
                 locationResource.data.let { currentUserLocation ->
                     _mainScreenState.update {
@@ -196,7 +206,6 @@ class MainViewModel @Inject constructor(
                     val dailyForecast = weatherData.dailyForecast
                     val hourlyForecast = weatherData.hourlyForecast
                     val mainWeatherInfo = weatherData.mainWeatherInfo
-                    // val timeZoneId = weatherData.timezone
                     _mainScreenState.update {
                         it.copy(
                             mainWeatherInfo = mainWeatherInfo,
@@ -314,6 +323,7 @@ class MainViewModel @Inject constructor(
                     }
                 }
             }
+
             is Resource.Error -> {
                 _mainScreenState.update {
                     it.copy(cities = ArrayList(), showMoreLess = ShowMoreLess.Hide)
