@@ -134,9 +134,8 @@ private fun getCurrentLocalTime(timeZoneId: String): Int {
     val zoneId = TimeZone.getTimeZone(timeZoneId).toZoneId()
     val calendar = Calendar.getInstance(timeZone)
     val localTime = LocalTime.now(zoneId)
-    val time: Int = if (calendar.get(Calendar.MINUTE) < 30)
+    return if (calendar.get(Calendar.MINUTE) < 30)
         localTime.hour else localTime.hour + 1
-    return time
 }
 
 

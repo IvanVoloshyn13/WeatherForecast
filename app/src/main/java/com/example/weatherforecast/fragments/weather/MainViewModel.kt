@@ -2,7 +2,6 @@ package com.example.weatherforecast.fragments.weather
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
 import com.example.domain.models.CurrentUserLocation
 import com.example.domain.models.SearchedCity
 import com.example.domain.models.weather.WeatherComponents
@@ -25,6 +24,7 @@ import com.example.weatherforecast.fragments.weather.models.ShowMoreCities
 import com.example.weatherforecast.fragments.weather.models.ShowMoreLess
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineExceptionHandler
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -52,6 +52,8 @@ class MainViewModel @Inject constructor(
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.d("EXCEPTION_HANDLER", throwable.message.toString())
     }
+
+    private val viewModelScope = CoroutineScope(exceptionHandler)
     private val _mainScreenState =
         MutableStateFlow<MainScreenState>(
             MainScreenState()
@@ -102,7 +104,7 @@ class MainViewModel @Inject constructor(
     }
 
     private fun getDataByCurrentUserLocation() {
-        viewModelScope.launch(exceptionHandler) {
+        viewModelScope.launch {
             _mainScreenState.update {
                 it.copy(isLoading = true)
             }
@@ -238,6 +240,7 @@ class MainViewModel @Inject constructor(
     }
 
     private suspend fun getCityImage(cityName: String) {
+
         val cityResource = fetchUnsplashImageByCityNameUseCase.invoke(cityName)
         when (cityResource) {
             is Resource.Success -> {
@@ -245,7 +248,8 @@ class MainViewModel @Inject constructor(
                     _mainScreenState.update {
                         it.copy(
                             currentWeatherLocationImage = cityResource.data.cityImageUrl,
-                            imageLoadingError = null
+                            imageLoadingError = null,
+
                         )
                     }
                 }
@@ -257,7 +261,7 @@ class MainViewModel @Inject constructor(
                         currentWeatherLocationImage = "",
                         imageLoadingError = ErrorState.ImageLoadingError(
                             message = cityResource.message ?: "Cant load data",  //TODO()
-                            e = cityResource.e
+                            e = cityResource.e,
                         )
                     )
                 }
