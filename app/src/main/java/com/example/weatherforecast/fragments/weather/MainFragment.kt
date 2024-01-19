@@ -6,6 +6,8 @@ import android.os.Bundle
 import android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS
 import android.view.MenuItem
 import android.view.View
+import android.view.animation.AnimationUtils
+import android.widget.ImageView
 import android.widget.Toast
 import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
@@ -41,6 +43,7 @@ import com.example.weatherforecast.fragments.weather.models.ShowMoreLess
 import com.google.android.material.navigation.NavigationView
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.CoroutineStart
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
@@ -58,6 +61,7 @@ class MainFragment : Fragment(R.layout.fragment_main),
     private lateinit var dailyAdapter: DailyAdapter
     private lateinit var savedLocationAdapter: SavedLocationAdapter
     private lateinit var drawerLayout: DrawerLayout
+    private val imageState = MutableStateFlow("")
 
     private val viewModel: MainViewModel by hiltNavGraphViewModels(R.id.main_nav_graph)
 
@@ -99,28 +103,35 @@ class MainFragment : Fragment(R.layout.fragment_main),
         initDailyRecycler()
         initSavedLocationsRecycler()
 
+
         viewLifecycleOwner.lifecycleScope.launch {
             viewModel.mainScreenState.collectLatest { state ->
-                updateMainWeatherWidget(state.mainWeatherInfo)
-                updateWidgetForecast(state)
-                updateShowMoreLessLocationState(state = state.showMoreLess)
-                binding.apply {
-                    with(toolbar) {
-                        tvCurrentTime.text = state.time
-                        tvToolbarTitle.text = state.location
+
+                if (!state.isLoading) {
+                    updateMainWeatherWidget(state.mainWeatherInfo)
+                    updateWidgetForecast(state)
+                    updateShowMoreLessLocationState(state = state.showMoreLess)
+                    binding.apply {
+                        with(toolbar) {
+                            tvCurrentTime.text = state.time
+                            tvToolbarTitle.text = state.location
+                        }
+                        if (state.currentWeatherLocationImage.isNotEmpty()) {
+                            if (checkForImageUpdate(state.currentWeatherLocationImage)) {
+                                ivCityImage.load(state.currentWeatherLocationImage)
+                                animateImage(ivCityImage)
+                            }
+                        } else {
+                            ivCityImage.load(R.drawable.cloud_blue_sky)
+                        }
+                        if (state.isLoading) {
+                            binding.progressBar.visibility = View.VISIBLE
+                        } else {
+                            binding.progressBar.visibility = View.GONE
+                        }
                     }
-                    if (state.currentWeatherLocationImage.isNotEmpty()) {
-                        ivCityImage.load(state.currentWeatherLocationImage)
-                    } else {
-                        ivCityImage.load(R.drawable.cloud_blue_sky)
-                    }
-                    if (state.isLoading) {
-                        binding.progressBar.visibility = View.VISIBLE
-                    } else {
-                        binding.progressBar.visibility = View.GONE
-                    }
+                    savedLocationAdapter.submitList(state.cities)
                 }
-                savedLocationAdapter.submitList(state.cities)
             }
         }
 
@@ -149,6 +160,19 @@ class MainFragment : Fragment(R.layout.fragment_main),
             viewModel.onIntent(ShowLessCities)
         }
 
+    }
+
+    private fun checkForImageUpdate(image: String): Boolean {
+        return if (imageState.value != image) {
+            imageState.value = image
+            true
+        } else false
+    }
+
+    private fun animateImage(ivCityImage: ImageView) {
+        val anim =
+            AnimationUtils.loadAnimation(requireContext(), R.anim.blink_anim)
+        ivCityImage.startAnimation(anim)
 
     }
 

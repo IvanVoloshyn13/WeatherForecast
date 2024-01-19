@@ -47,6 +47,7 @@ class SearchViewModel @Inject constructor(
                 }
             } else {
                 _cities.emit(ArrayList())
+                _isLoading.emit(false)
             }
         }
 
